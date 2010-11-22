@@ -19,8 +19,8 @@ public class AccountingTester implements IStrategy {
 		this.context = context;
 		Set<Instrument> instSet = new HashSet<Instrument>();
 		instSet.add(selectedInst);
-		accounter.subscribeTransitionalInstrument(instSet);
-		logger.print("in onStart");
+		accounter.subscribeTransitionalInstruments(instSet);
+		logger.print("done onStart");
 		
 	}
 

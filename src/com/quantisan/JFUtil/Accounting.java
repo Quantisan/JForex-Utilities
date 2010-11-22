@@ -105,7 +105,7 @@ public class Accounting {
 	@param instSet set of instruments to be traded
 	 *
 	**/
-	public void subscribeTransitionalInstrument(Set<Instrument> instSet) {
+	public void subscribeTransitionalInstruments(Set<Instrument> instSet) {
 		Currency firstCurr, secondCurr;
 		Set<Instrument> subscribeSet = new HashSet<Instrument>(this.context.getSubscribedInstruments());
 		for (Instrument instrument : instSet) {
@@ -167,7 +167,7 @@ public class Accounting {
 	 *
 	@param riskPct	a risk percentage in range of (0, 1]
 	 *
-	@return	a recommended lot size
+	@return	a suggested lot size in millions
 	**/
 	public double getLot(Instrument instrument, 
 			double stopSize, double riskPct) 
@@ -176,7 +176,7 @@ public class Accounting {
 		double equity = this.account.getEquity();
 		riskAmount = equity * riskPct;
 		lotSize = riskAmount / getAccountRiskPerUnit(instrument, stopSize);
-		
+		lotSize /= 1e6;		// in millions for JForex API
 		return Rounding.lot(lotSize);
 	}
 	
