@@ -172,11 +172,36 @@ public class Accounting {
 	public double getLot(Instrument instrument, 
 			double stopSize, double riskPct) 
 	{
+		return getPartLot(instrument, stopSize, riskPct, 1);
+	}
+	
+	/**
+	 * Get lot size divided by number of parts 
+	 * given size of stop and preferred risk percentage.
+	 * For use with splitting a position into multiple parts, such that
+	 * the total risk is less than the given risk percentage.
+	 * 
+	@param instrument the instrument traded
+	 *
+	@param stopSize	the stop size to use for calculation
+	 *
+	@param riskPct	a risk percentage in range of (0, 1]
+	 *
+	@param parts	number of parts of the position
+	 *
+	@return	a suggested partitioned lot size in millions
+	**/
+	public double getPartLot(Instrument instrument, 
+			double stopSize, double riskPct, int parts) 
+	{
 		double riskAmount, lotSize;
 		double equity = this.account.getEquity();
 		riskAmount = equity * riskPct;
 		lotSize = riskAmount / getAccountRiskPerUnit(instrument, stopSize);
 		lotSize /= 1e6;		// in millions for JForex API
+		
+		lotSize /= parts;
+		
 		return Rounding.lot(lotSize);
 	}
 	

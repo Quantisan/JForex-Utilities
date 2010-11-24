@@ -166,6 +166,32 @@ public class Indicating {
 		}
 		return bar;
 	}
+	
+	/**
+	 * Get the last tick price of an instrument
+	 * 
+	@param instrument the instrument to lookup
+	 *
+	@param offerSide bid or ask
+	 *
+	@return latest tick price
+	 *
+	**/
+	public double getLastPrice(Instrument instrument, OfferSide offerSide) {
+		double price;
+		try {
+			if (offerSide == OfferSide.BID)
+				price = this.history.getLastTick(instrument).getBid();
+			else
+				price = this.history.getLastTick(instrument).getAsk();
+		}
+		catch (JFException ex) {
+			price = Double.NaN;
+			Logging logger = new Logging(this.context.getConsole());
+			logger.printErr("Cannot get price.", ex);			
+		}
+		return price;
+	}
 
 	/**
 	 * Get the strategy write-accessible JForex files directory
