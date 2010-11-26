@@ -178,7 +178,7 @@ public class Accounting {
 	/**
 	 * Get lot size divided by number of parts 
 	 * given size of stop and preferred risk percentage.
-	 * For use with splitting a position into multiple parts, such that
+	 * For use with splitting a position into multiple trades, such that
 	 * the total risk is less than the given risk percentage.
 	 * 
 	@param instrument the instrument traded

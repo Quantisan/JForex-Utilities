@@ -7,6 +7,12 @@ import com.dukascopy.api.Instrument;
  * 
  */
 public final class Rounding {
+	
+	/**
+	 * minimum lot size on JForex
+	*/	
+	public final static double MINLOT = 0.001d;
+	
 	/**
 	 * Rounding a pip value to 1/10 of a pip
 	 *                      

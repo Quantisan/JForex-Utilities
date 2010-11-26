@@ -105,8 +105,9 @@ public class Indicating {
 	 *
 	@param  dataPoints number of data points to get
 	 * 
-
 	@return an array of indicator results
+	 *
+	@see IIndicators#calculateIndicator(Instrument, Period, OfferSide[], String, AppliedPrice[], Object[], Filter, int, long, int)
 	 */
 	public double[] getIndicatorResult(Instrument instrument, Period period, 
 			String functionName, OfferSide[] offerSides, 
@@ -153,6 +154,7 @@ public class Indicating {
 	 *
 	@return the last completed bid/ask bar
 	 *
+	@see IHistory#getBar(Instrument, Period, OfferSide, int)
 	 */	
 	public IBar getLastBar(Instrument instrument, Period period, OfferSide offerSide) {
 		IBar bar;
@@ -176,6 +178,7 @@ public class Indicating {
 	 *
 	@return latest tick price
 	 *
+	@see IHistory#getLastTick(Instrument)
 	**/
 	public double getLastPrice(Instrument instrument, OfferSide offerSide) {
 		double price;
@@ -198,6 +201,7 @@ public class Indicating {
 	 * 
 	@return directory path
 	 *
+	@see IContext#getFilesDir()
 	 */
 	public String getFilesDir() {
 		return this.context.getFilesDir().toString();
