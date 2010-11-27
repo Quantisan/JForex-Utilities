@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import com.dukascopy.api.*;
+import com.dukascopy.api.IOrder.State;
 
 /**
  * Executing orders in separate threads
@@ -49,11 +50,8 @@ public class Ordering {
 	 *
 	 */
 	public void setTrailStep(IOrder order, double trailStep) 
-	{
-		// set trailing step only if trailStep is >= 10d and 
-		// there is no trailing step in order already
-		if (trailStep >= 10d && order.getTrailingStep() == 0d)
-			setStopLoss(order, order.getStopLossPrice(), trailStep);
+	{		
+		(new Thread(new TrailStepTask(order, trailStep))).start();
 	}
 	
 	/**
@@ -71,6 +69,7 @@ public class Ordering {
 
 	private class TrailStepTask implements Runnable {
 		private Future<IOrder> future;
+		private IOrder order;
 		private double trailStep;
 
 		public TrailStepTask(Future<IOrder> future, double trailStep) 
@@ -78,26 +77,40 @@ public class Ordering {
 			this.future = future;
 			this.trailStep = trailStep;
 		}
+		
+		public TrailStepTask(IOrder order, double trailStep) 
+		{
+			this.order = order;
+			this.trailStep = trailStep;
+		}
+		
 		@Override
-		public void run() {
-			IOrder order = null;
-			try {
-				order = future.get();
-			} catch (InterruptedException ex) {
-				Logging logger = new Logging(getContext().getConsole());
-				logger.printErr("TrailStepTask interrupted.", ex);
-
-			} catch (ExecutionException ex) {
-				Logging logger = new Logging(getContext().getConsole());
-				logger.printErr("TrailStepTask cannot execute.", ex);
+		public void run() {			
+			if (future != null) {
+				try {
+					order = future.get();
+				} catch (InterruptedException ex) {
+					Logging logger = new Logging(getContext().getConsole());
+					logger.printErr("TrailStepTask interrupted.", ex);
+	
+				} catch (ExecutionException ex) {
+					Logging logger = new Logging(getContext().getConsole());
+					logger.printErr("TrailStepTask cannot execute.", ex);
+				}
 			}
 			
-			try {
-				setTrailStep(order, this.trailStep);
-			} catch (NullPointerException ex) {
-				Logging logger = new Logging(getContext().getConsole());
-				logger.printErr("order in TrailStepTask is null.", ex);
+			// set trailing step only if trailStep is >= 10d and 
+			// there is no trailing step in order already
+			if (trailStep < 10d || order.getTrailingStep() != 0d)
+				return;
+			
+			for (int i = 0; i < 10; i++) {
+				if (order.getState() != State.FILLED && order.getState() != State.OPENED)
+					order.waitForUpdate(1000);
+				else	break;
 			}
+			
+			setStopLoss(order, order.getStopLossPrice(), this.trailStep);			
 		}
 	}
 	
@@ -208,7 +221,10 @@ public class Ordering {
 	public Future<IOrder> placeAsk(Instrument instrument, double amount, 
 			double stopLossPrice, double trailStep, double targetPrice) {
 		Future<IOrder> future = placeAsk(instrument, amount, stopLossPrice, targetPrice);
-		setTrailStep(future, trailStep);	// creates new thread and wait for order to set trailstep
+		if (trailStep != 0) {
+			// creates new thread and wait for order to set trailstep
+			setTrailStep(future, trailStep);
+		}
 		return future;
 	}
 	

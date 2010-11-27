@@ -1,5 +1,6 @@
 package com.quantisan.JFUtil;
 
+import java.util.List;
 import java.util.concurrent.*;
 import com.dukascopy.api.*;
 
@@ -7,6 +8,8 @@ import com.dukascopy.api.*;
 public class OrderingTester implements IStrategy {
 	Ordering orderer;
 	Logging logger;
+	
+	@Configurable("Instrument") public Instrument selectedInst = Instrument.EURJPY;
 	
 	@Override
 	public void onStart(IContext context) throws JFException {		
@@ -16,17 +19,17 @@ public class OrderingTester implements IStrategy {
 		IOrder order = null;
 		logger.print("Placing bid");
 
-		Future<IOrder> future = orderer.placeBid(Instrument.GBPUSD, 0.1, .10);
-		try {
-			order = future.get();
-		}
-		catch (Exception ex) {
-			logger.printErr("Bid order not ready yet.", ex);				
-			return;
-		}
-		order.waitForUpdate(1000);
-		logger.print("Changing stop");
-		orderer.setStopLoss(order, 1.6016d, 50d);
+		Future<IOrder> future = orderer.placeAsk(selectedInst, 
+												 0.1, 112.00, 50, 0d);
+//		try {
+//			order = future.get();
+//		}
+//		catch (Exception ex) {
+//			logger.printErr("Bid order not ready yet.", ex);				
+//			return;
+//		}
+//		order.waitForUpdate(1000);
+		logger.print("done onStart");
 	}
 
 	@Override
@@ -38,9 +41,11 @@ public class OrderingTester implements IStrategy {
 	@Override
 	public void onBar(Instrument instrument, Period period, IBar askBar,
 			IBar bidBar) throws JFException {
-		if (period != Period.TEN_SECS || instrument != Instrument.GBPUSD)	return;
+		if (period != Period.ONE_HOUR || instrument != selectedInst)	return;
 		
-
+		List<IOrder> orders = orderer.getOrders(selectedInst);
+		for (IOrder order : orders)
+			logger.printOrderInfo(order);
 	}
 
 	@Override
