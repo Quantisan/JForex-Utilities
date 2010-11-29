@@ -19,8 +19,10 @@ public class OrderingTester implements IStrategy {
 		IOrder order = null;
 		logger.print("Placing bid");
 
-		Future<IOrder> future = orderer.placeAsk(selectedInst, 
-												 0.1, 112.00, 50, 0d);
+		Future<IOrder> future = 
+			orderer.placeMarketOrder(selectedInst, 
+									IEngine.OrderCommand.SELL,
+									0.1, 112.00, 50, 0d);
 //		try {
 //			order = future.get();
 //		}
