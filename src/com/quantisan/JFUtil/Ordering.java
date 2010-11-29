@@ -67,53 +67,6 @@ public class Ordering {
 		(new Thread(new TrailStepTask(future, trailStep))).start();
 	}
 
-	private class TrailStepTask implements Runnable {
-		private Future<IOrder> future;
-		private IOrder order;
-		private double trailStep;
-
-		public TrailStepTask(Future<IOrder> future, double trailStep) 
-		{
-			this.future = future;
-			this.trailStep = trailStep;
-		}
-		
-		public TrailStepTask(IOrder order, double trailStep) 
-		{
-			this.order = order;
-			this.trailStep = trailStep;
-		}
-		
-		@Override
-		public void run() {			
-			if (future != null) {
-				try {
-					order = future.get();
-				} catch (InterruptedException ex) {
-					Logging logger = new Logging(getContext().getConsole());
-					logger.printErr("TrailStepTask interrupted.", ex);
-	
-				} catch (ExecutionException ex) {
-					Logging logger = new Logging(getContext().getConsole());
-					logger.printErr("TrailStepTask cannot execute.", ex);
-				}
-			}
-			
-			// set trailing step only if trailStep is >= 10d and 
-			// there is no trailing step in order already
-			if (trailStep < 10d || order.getTrailingStep() != 0d)
-				return;
-			
-			for (int i = 0; i < 10; i++) {
-				if (order.getState() != State.FILLED && order.getState() != State.OPENED)
-					order.waitForUpdate(1000);
-				else	break;
-			}
-			
-			setStopLoss(order, order.getStopLossPrice(), this.trailStep);			
-		}
-	}
-	
 	/**
 	 * Check to see if there is any risk exposure
 	 * 
@@ -154,25 +107,30 @@ public class Ordering {
 		return outList;
 	}
 	
-	// TODO combine placeAsk and placeBid into placeOrder with IEngine.OrderCommand
-	
 	/**
-	 * Send a market ask order in its own thread
+	 * Send a market order in its own thread
 	 * 
-	@param instrument the purchasing instrument
+	 * @param instrument the purchasing instrument
 	 *
-	@param amount the amount to buy, in millions, minimum 0.001
+	 * @param orderCmd BUY or SELL
+	 * 
+	 * @param amount the amount to buy, in millions, minimum 0.001
 	 *
-	@param stopLossSize size of the stop loss, in scale of instrument
+	 * @param stopLossSize size of the stop loss, in scale of instrument
 	 *
-	@see #placeAsk(Instrument, double, double, double)
+	 * @see #placeMarketOrder(Instrument, 
+	 * com.dukascopy.api.IEngine.OrderCommand, double, double, double)
 	**/
-	public Future<IOrder> placeAsk(Instrument instrument, double amount, 
-			double stopLossSize) 
+	public Future<IOrder> placeMarketOrder(Instrument instrument, 
+						IEngine.OrderCommand orderCmd, double amount, 
+						double stopLossSize) 
 	{
-		double price;
+		double price = Double.NaN;
 		try {
-			price = getContext().getHistory().getLastTick(instrument).getBid();
+			if (orderCmd == IEngine.OrderCommand.SELL)
+				price = getContext().getHistory().getLastTick(instrument).getBid();
+			else if (orderCmd == IEngine.OrderCommand.BUY)
+				price = getContext().getHistory().getLastTick(instrument).getAsk();
 		}
 		catch(JFException ex) {
 			Logging logger = new Logging(getContext().getConsole());
@@ -180,123 +138,65 @@ public class Ordering {
 			return null;
 		}
 		double stopLossPrice = price + stopLossSize;
-		return placeAsk(instrument, amount, stopLossPrice, 0d);	
+		return placeMarketOrder(instrument, orderCmd, amount, stopLossPrice, 0d);	
 	}
 	
 	/**
-	 * Send a market ask order in its own thread
+	 * Send a market order in its own thread
 	 * 
-	@param instrument the purchasing instrument
+	 * @param instrument the purchasing instrument
+	 * 
+	 * @param orderCmd BUY or SELL
 	 *
-	@param amount the amount to buy, in millions, minimum 0.001
+	 * @param amount the amount to buy, in millions, minimum 0.001
 	 *
-	@param stopLossPrice stop loss price, 0 for no stop
+	 * @param stopLossPrice stop loss price, 0 for no stop
 	 *
-	@param targetPrice target price, 0 for no target
+	 * @param targetPrice target price, 0 for no target
 	 *
-	@see IEngine#submitOrder(String, Instrument, com.dukascopy.api.IEngine.OrderCommand, double, double, double, double, double)
+	 * @see IEngine#submitOrder(String, Instrument, 
+	 * com.dukascopy.api.IEngine.OrderCommand, double, double, double, double, double)
 	**/
-	public Future<IOrder> placeAsk(Instrument instrument, double amount, 
-			double stopLossPrice, double targetPrice) {
-		SellTask task = new SellTask(instrument, amount, 
-				stopLossPrice, targetPrice);
+	public Future<IOrder> placeMarketOrder(Instrument instrument, 
+							IEngine.OrderCommand orderCmd, 
+							double amount,
+							double stopLossPrice, double targetPrice) 
+	{
+		MarketOrderTask task = new MarketOrderTask(instrument, orderCmd, 
+										amount, stopLossPrice, targetPrice);
 		return getContext().executeTask(task);	
 	}	
 	
 	/**
-	 * Send a market ask order in its own thread
+	 * Send a market order in its own thread
 	 * 
-	@param instrument the purchasing instrument
+	 * @param instrument the purchasing instrument
 	 *
-	@param amount the amount to buy, in millions, minimum 0.001
+	 * @param orderCmd BUY or SELL
+	 * 
+	 * @param amount the amount to buy, in millions, minimum 0.001
 	 *
-	@param stopLossPrice stop loss price, 0 for no stop
+	 * @param stopLossPrice stop loss price, 0 for no stop
 	 *
-	@param trailStep sets a trailing step to the order
+	 * @param trailStep sets a trailing step to the order
 	 *
-	@param targetPrice target price, 0 for no target
+	 * @param targetPrice target price, 0 for no target
 	 *
-	@see IEngine#submitOrder(String, Instrument, com.dukascopy.api.IEngine.OrderCommand, double, double, double, double, double)
+	 * @see IEngine#submitOrder(String, Instrument, 
+	 * com.dukascopy.api.IEngine.OrderCommand, double, double, double, double, double)
 	**/
-	public Future<IOrder> placeAsk(Instrument instrument, double amount, 
-			double stopLossPrice, double trailStep, double targetPrice) {
-		Future<IOrder> future = placeAsk(instrument, amount, stopLossPrice, targetPrice);
-		if (trailStep != 0) {
+	public Future<IOrder> placeMarketOrder(Instrument instrument, 
+				IEngine.OrderCommand orderCmd, double amount, 
+				double stopLossPrice, double trailStep, double targetPrice) 
+	{
+		Future<IOrder> future = placeMarketOrder(instrument, orderCmd, 
+												amount, stopLossPrice, targetPrice);
+		if (trailStep != 0d) {
 			// creates new thread and wait for order to set trailstep
 			setTrailStep(future, trailStep);
 		}
 		return future;
 	}
-	
-	/**
-	 * Send a market bid order in its own thread
-	 * 
-	@param instrument the purchasing instrument
-	 *
-	@param amount the amount to buy, in millions, minimum 0.001
-	 *
-	@param stopLossSize size of the stop loss, in scale of instrument
-	 *
-	@see #placeBid(Instrument, double, double, double)
-	**/
-	public Future<IOrder> placeBid(Instrument instrument, double amount, 
-			double stopLossSize) 
-	{
-		double price;
-		try {
-			price = getContext().getHistory().getLastTick(instrument).getAsk();
-		}
-		catch(JFException ex) {
-			Logging logger = new Logging(getContext().getConsole());
-			logger.printErr("Cannot get price.", ex);
-			return null;
-		}
-		double stopLossPrice = price - stopLossSize;
-		return placeBid(instrument, amount, stopLossPrice, 0d);	
-	}
-	
-	/**
-	 * Send a market bid order in its own thread
-	 * 
-	@param instrument the purchasing instrument
-	 *
-	@param amount the amount to buy, in millions, minimum 0.001
-	 *
-	@param stopLossPrice stop loss price, 0 for no stop
-	 *
-	@param targetPrice target price, 0 for no target
-	 *
-	@see IEngine#submitOrder(String, Instrument, com.dukascopy.api.IEngine.OrderCommand, double, double, double, double, double)
-	**/
-	public Future<IOrder> placeBid(Instrument instrument, double amount, 
-			double stopLossPrice, double targetPrice) {
-		BuyTask task = new BuyTask(instrument, amount, 
-				stopLossPrice, targetPrice);
-		return getContext().executeTask(task);	
-	}
-
-	/**
-	 * Send a market bid order in its own thread
-	 * 
-	@param instrument the purchasing instrument
-	 *
-	@param amount the amount to buy, in millions, minimum 0.001
-	 *
-	@param stopLossPrice stop loss price, 0 for no stop
-	 *
-	@param trailStep sets a trailing step to the order
-	 *
-	@param targetPrice target price, 0 for no target
-	 *
-	@see IEngine#submitOrder(String, Instrument, com.dukascopy.api.IEngine.OrderCommand, double, double, double, double, double)
-	**/
-	public Future<IOrder> placeBid(Instrument instrument, double amount, 
-			double stopLossPrice, double trailStep, double targetPrice) {
-		Future<IOrder> future = placeBid(instrument, amount, stopLossPrice, targetPrice);
-		setTrailStep(future, trailStep);	// creates new thread and wait for order to set trailstep
-		return future;
-	}
-	
 	
 	/**
 	 * Close an order at market price
@@ -317,10 +217,10 @@ public class Ordering {
 	*/
 	public void close(IOrder order, double percentage) {
 		if (percentage <= 0d || percentage > 1d) {
-			throw new IllegalArgumentException(
-					"percentage must in range (0, 1]");
+			throw new IllegalArgumentException("percentage must in range (0, 1]");
 		}
 		else if (percentage == 1d) {		// close all
+			// TODO move to Callable
 			try {
 				order.close();
 			}
@@ -398,28 +298,28 @@ public class Ordering {
 	/**
 	 * @return the strategyTag
 	 */
-	protected String getStrategyTag() {
+	public String getStrategyTag() {
 		return strategyTag;
 	}
 
 	/**
 	 * @param strategyTag the strategy tag to set
 	 */
-	protected void setStrategyTag(String strategyTag) {
+	public void setStrategyTag(String strategyTag) {
 		this.strategyTag = strategyTag;
 	}
 
 	/**
 	 * @return the slippage
 	 */
-	protected int getSlippage() {
+	public int getSlippage() {
 		return slippage;
 	}
 
 	/**
 	 * @param slippage the slippage to set
 	 */
-	protected void setSlippage(int slippage) {
+	public void setSlippage(int slippage) {
 		this.slippage = slippage;
 	}
 
@@ -429,6 +329,55 @@ public class Ordering {
 	 */
 	public void resetCounter() {
 		this.counter = 0;
+	}
+
+	private class TrailStepTask implements Runnable {
+		private Future<IOrder> future;
+		private IOrder order;
+		private double trailStep;
+	
+		public TrailStepTask(Future<IOrder> future, double trailStep) 
+		{
+			this.future = future;
+			this.trailStep = trailStep;
+		}
+		
+		public TrailStepTask(IOrder order, double trailStep) 
+		{
+			this.order = order;
+			this.trailStep = trailStep;
+		}
+		
+		@Override
+		public void run() {			
+			if (future != null) {
+				try {
+					order = future.get();
+				} catch (InterruptedException ex) {
+					Logging logger = new Logging(getContext().getConsole());
+					logger.printErr("TrailStepTask interrupted.", ex);
+	
+				} catch (ExecutionException ex) {
+					Logging logger = new Logging(getContext().getConsole());
+					logger.printErr("TrailStepTask cannot execute.", ex);
+				}
+			}
+			
+			// set trailing step only if trailStep is >= 10d and 
+			// there is no trailing step in order already
+			if (trailStep < 10d || order.getTrailingStep() != 0d)
+				return;
+					
+			for (int i = 0; i < 10; i++) {
+				if (order.getState() != State.FILLED && order.getState() != State.OPENED) {
+					order.waitForUpdate(1000);
+				}
+				else	break;
+			}
+			
+			// TODO how to overcome "change to same stop loss price warning"
+			setStopLoss(order, order.getStopLossPrice(), this.trailStep);			
+		}
 	}
 
 	/**
@@ -471,7 +420,7 @@ public class Ordering {
 			}
 			catch (JFException ex) {
 				logger = new Logging(getContext().getConsole());				
-				logger.printErr("Couldn't set newStop: " + newStop + 
+				logger.printErr(order.getLabel() + "-- couldn't set newStop: " + newStop + 
 						", trailStep: " + trailStep, ex);
 				return null;
 			}
@@ -483,8 +432,9 @@ public class Ordering {
 	 * Inner class for sending buy order in a Callable thread
 	 * 
 	 */
-	private class BuyTask implements Callable<IOrder>{
+	private class MarketOrderTask implements Callable<IOrder>{
     	private Instrument instrument;
+    	private IEngine.OrderCommand orderCmd;
         private double stopLossPrice, targetPrice, amount;  
 		/**
 		 * Construct a BuyTask
@@ -498,10 +448,12 @@ public class Ordering {
 		@param targetPrice target price, 0 for no target
 		 *
 		 */
-    	public BuyTask(Instrument instrument, double amount, 
-    			double stopLossPrice, double targetPrice)
+    	public MarketOrderTask(Instrument instrument, 
+    						IEngine.OrderCommand orderCmd, double amount, 
+    						double stopLossPrice, double targetPrice)
     	{
     		this.instrument = instrument;
+    		this.orderCmd = orderCmd;
     		this.amount = amount;
     		this.stopLossPrice = stopLossPrice;    		
     		this.targetPrice = targetPrice;
@@ -509,56 +461,20 @@ public class Ordering {
  
     	public IOrder call() {
     		IOrder order;
+    		String label = Ordering.this.getLabel();
     		try {
-    			order = engine.submitOrder(Ordering.this.getLabel(), 
-    					this.instrument, IEngine.OrderCommand.BUY, 
-    					Rounding.lot(this.amount), 0, Ordering.this.slippage, 
-        				Rounding.pip(this.instrument, this.stopLossPrice),
-        				Rounding.pip(this.instrument, this.targetPrice));
+    			order = engine.submitOrder(label, 
+    						this.instrument, this.orderCmd, 
+	    					Rounding.lot(this.amount), 0, Ordering.this.slippage, 
+	        				Rounding.pip(this.instrument, this.stopLossPrice),
+	        				Rounding.pip(this.instrument, this.targetPrice));
     		}
     		catch (JFException ex) {
 				Logging logger = new Logging(getContext().getConsole());
-				logger.printErr("Cannot place bid.", ex);
+				logger.printErr(label + "-- cannot place market order.", ex);
 				return null;
     		}
     		return order;
-    	}
-    }
-	
-	/**
-	 * Inner class for sending sell order in a Callable thread
-	 * 
-	 */
-	private class SellTask implements Callable<IOrder>{
-    	private Instrument instrument;
-        private double stopLossPrice, targetPrice, amount;  
-		/**
-		 * Construct a BuyTask
-		 * 
-		@param instrument the purchasing instrument
-		 *
-		@param amount the amount to buy, in millions, minimum 0.001
-		 *
-		@param stopLossPrice stop loss price
-		 *
-		@param targetPrice target price
-		 *
-		 */
-    	public SellTask(Instrument instrument, double amount, 
-    			double stopLossPrice, double targetPrice)
-    	{
-    		this.instrument = instrument;
-    		this.amount = amount;
-    		this.stopLossPrice = stopLossPrice;    		
-    		this.targetPrice = targetPrice;
-    	}
- 
-    	public IOrder call() throws Exception {
-    		return engine.submitOrder(Ordering.this.getLabel(), this.instrument, 
-    				IEngine.OrderCommand.SELL, this.amount, 
-    				0, Ordering.this.slippage, 
-     				Rounding.pip(this.instrument, this.stopLossPrice),
-    				Rounding.pip(this.instrument, this.targetPrice));
     	}
     }
 }

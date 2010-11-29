@@ -20,6 +20,10 @@ public class Logging {
 		this.console = console;
 	}
 
+	public IConsole getConsole() {
+		return console;
+	}
+
 	/**
 	 * Printing a string to the JForex PrintStream
 	                          
@@ -28,7 +32,7 @@ public class Logging {
 
 	 */
 	public void print(String string) {
-		this.console.getOut().println(string);
+		getConsole().getOut().println(string);
 	}
 	
 	/**
@@ -41,8 +45,8 @@ public class Logging {
 
 	 */
 	public void printErr(String string, Exception ex) {		
-		ex.printStackTrace(this.console.getErr());
-		this.console.getErr().println(string);
+		ex.printStackTrace(getConsole().getErr());
+		getConsole().getErr().println(string);
 	}
 	
 	/**

@@ -30,6 +30,10 @@ public class Indicating {
 		this.filter = Filter.WEEKENDS;
 	}
 
+	protected IContext getContext() {
+		return context;
+	}
+
 	/**
 	 * Register a custom indicator in the system
 	 * 
@@ -40,7 +44,7 @@ public class Indicating {
 		try {
 			this.indicators.registerCustomIndicator(file);			
 		} catch (JFException ex) {
-			Logging logger = new Logging(context.getConsole());			
+			Logging logger = new Logging(getContext().getConsole());			
 			logger.printErr("Cannot register " + file.toString(), ex);
 		}
 	}
@@ -117,7 +121,7 @@ public class Indicating {
 		try {
 			bar = this.history.getBar(instrument, period, this.offerSide, 1);
 		} catch (JFException ex) {
-			Logging logger = new Logging(context.getConsole());			
+			Logging logger = new Logging(getContext().getConsole());			
 			logger.printErr("Cannot get bar history", ex);
 			return null;
 		}
@@ -135,7 +139,7 @@ public class Indicating {
 					bar.getTime(),
 					0);
 		} catch (JFException ex) {
-			Logging logger = new Logging(context.getConsole());			
+			Logging logger = new Logging(getContext().getConsole());			
 			logger.printErr("Cannot calculate indicator", ex);
 			return null;
 		}
@@ -162,7 +166,7 @@ public class Indicating {
 		try {
 			bar = this.history.getBar(instrument, period, offerSide, 1);
 		} catch (JFException ex) {
-			Logging logger = new Logging(this.context.getConsole());			
+			Logging logger = new Logging(getContext().getConsole());			
 			logger.printErr("Cannot load bar history", ex);		
 			return null;
 		}
@@ -190,7 +194,7 @@ public class Indicating {
 		}
 		catch (JFException ex) {
 			price = Double.NaN;
-			Logging logger = new Logging(this.context.getConsole());
+			Logging logger = new Logging(getContext().getConsole());
 			logger.printErr("Cannot get price.", ex);			
 		}
 		return price;
