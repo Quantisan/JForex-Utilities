@@ -18,7 +18,7 @@ import com.dukascopy.api.IOrder.State;
 public class Ordering {
 	private IContext context;
 	private IEngine engine;
-	private String strategyTag;
+	//private String strategyTag;
 	//private String setupTag;	// TODO implement in label
 	private int counter;
 	private int slippage;
@@ -33,10 +33,9 @@ public class Ordering {
 	@param slippage slippage to use
 	 *
 	 */
-	public Ordering(IContext context, String strategyTag, int slippage) {
+	public Ordering(IContext context, int slippage) {
 		this.context = context;
 		this.engine = context.getEngine();
-		this.strategyTag = strategyTag;
 		setSlippage(slippage);
 		this.counter = 0;
 	}
@@ -110,6 +109,10 @@ public class Ordering {
 	/**
 	 * Send a market order in its own thread
 	 * 
+	 * @param prefix a prefix for the order label
+	 * 
+	 * @param suffix a suffix for the order label
+	 * 
 	 * @param instrument the purchasing instrument
 	 *
 	 * @param orderCmd BUY or SELL
@@ -121,9 +124,11 @@ public class Ordering {
 	 * @see #placeMarketOrder(Instrument, 
 	 * com.dukascopy.api.IEngine.OrderCommand, double, double, double)
 	**/
-	public Future<IOrder> placeMarketOrder(Instrument instrument, 
-						IEngine.OrderCommand orderCmd, double amount, 
-						double stopLossSize) 
+	public Future<IOrder> placeMarketOrder(String prefix, String suffix,
+											Instrument instrument, 
+											IEngine.OrderCommand orderCmd, 
+											double amount, 
+											double stopLossSize) 
 	{
 		double price = Double.NaN;
 		try {
@@ -138,11 +143,15 @@ public class Ordering {
 			return null;
 		}
 		double stopLossPrice = price + stopLossSize;
-		return placeMarketOrder(instrument, orderCmd, amount, stopLossPrice, 0d);	
+		return placeMarketOrder(prefix, suffix, instrument, orderCmd, amount, stopLossPrice, 0d);	
 	}
 	
 	/**
 	 * Send a market order in its own thread
+	 * 
+	 * @param prefix a prefix for the order label
+	 * 
+	 * @param suffix a suffix for the order label
 	 * 
 	 * @param instrument the purchasing instrument
 	 * 
@@ -157,18 +166,25 @@ public class Ordering {
 	 * @see IEngine#submitOrder(String, Instrument, 
 	 * com.dukascopy.api.IEngine.OrderCommand, double, double, double, double, double)
 	**/
-	public Future<IOrder> placeMarketOrder(Instrument instrument, 
+	public Future<IOrder> placeMarketOrder(String prefix, String suffix, 
+							Instrument instrument, 
 							IEngine.OrderCommand orderCmd, 
 							double amount,
 							double stopLossPrice, double targetPrice) 
-	{
-		MarketOrderTask task = new MarketOrderTask(instrument, orderCmd, 
-										amount, stopLossPrice, targetPrice);
+	{	// TODO add label prefix and suffix param
+		MarketOrderTask task = 
+			new MarketOrderTask(prefix, suffix,
+								instrument, orderCmd, 
+								amount, stopLossPrice, targetPrice);
 		return getContext().executeTask(task);	
 	}	
 	
 	/**
 	 * Send a market order in its own thread
+	 * 
+	 * @param prefix a prefix for the order label
+	 * 
+	 * @param suffix a suffix for the order label
 	 * 
 	 * @param instrument the purchasing instrument
 	 *
@@ -185,11 +201,16 @@ public class Ordering {
 	 * @see IEngine#submitOrder(String, Instrument, 
 	 * com.dukascopy.api.IEngine.OrderCommand, double, double, double, double, double)
 	**/
-	public Future<IOrder> placeMarketOrder(Instrument instrument, 
-				IEngine.OrderCommand orderCmd, double amount, 
-				double stopLossPrice, double trailStep, double targetPrice) 
+	public Future<IOrder> placeMarketOrder(String prefix, String suffix,
+											Instrument instrument, 
+											IEngine.OrderCommand orderCmd, 
+											double amount, 
+											double stopLossPrice, 
+											double trailStep, 
+											double targetPrice) 
 	{
-		Future<IOrder> future = placeMarketOrder(instrument, orderCmd, 
+		Future<IOrder> future = placeMarketOrder(prefix, suffix,
+												instrument, orderCmd, 
 												amount, stopLossPrice, targetPrice);
 		if (trailStep != 0d) {
 			// creates new thread and wait for order to set trailstep
@@ -279,11 +300,11 @@ public class Ordering {
 	 *
 	@see java.lang.Override
 	 */
-	private String getLabel() {
+	private String getLabel(String prefix, String suffix) {
 		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
 		int day = calendar.get(Calendar.DAY_OF_MONTH);
 		
-		return (this.strategyTag + day + "d" + counter++);						
+		return (prefix + day + "d" + counter++ + suffix);						
 	}
 
 	/**
@@ -293,20 +314,6 @@ public class Ordering {
 	 */
 	protected IContext getContext() {
 		return context;
-	}
-	
-	/**
-	 * @return the strategyTag
-	 */
-	public String getStrategyTag() {
-		return strategyTag;
-	}
-
-	/**
-	 * @param strategyTag the strategy tag to set
-	 */
-	public void setStrategyTag(String strategyTag) {
-		this.strategyTag = strategyTag;
 	}
 
 	/**
@@ -436,6 +443,8 @@ public class Ordering {
     	private Instrument instrument;
     	private IEngine.OrderCommand orderCmd;
         private double stopLossPrice, targetPrice, amount;  
+        private String prefix, suffix;
+        
 		/**
 		 * Construct a BuyTask
 		 * 
@@ -448,7 +457,8 @@ public class Ordering {
 		@param targetPrice target price, 0 for no target
 		 *
 		 */
-    	public MarketOrderTask(Instrument instrument, 
+    	public MarketOrderTask(String prefix, String suffix,
+    						Instrument instrument, 
     						IEngine.OrderCommand orderCmd, double amount, 
     						double stopLossPrice, double targetPrice)
     	{
@@ -457,11 +467,15 @@ public class Ordering {
     		this.amount = amount;
     		this.stopLossPrice = stopLossPrice;    		
     		this.targetPrice = targetPrice;
+    		this.prefix = prefix;
+    		this.suffix = suffix;
+    		
+    		
     	}
  
     	public IOrder call() {
     		IOrder order;
-    		String label = Ordering.this.getLabel();
+    		String label = Ordering.this.getLabel(this.prefix, this.suffix);
     		try {
     			order = engine.submitOrder(label, 
     						this.instrument, this.orderCmd, 

@@ -13,14 +13,14 @@ public class OrderingTester implements IStrategy {
 	
 	@Override
 	public void onStart(IContext context) throws JFException {		
-		orderer = new Ordering(context, "Tester", 3);
+		orderer = new Ordering(context, 3);
 		logger = new Logging(context.getConsole());
 		
 		IOrder order = null;
 		logger.print("Placing bid");
 
 		Future<IOrder> future = 
-			orderer.placeMarketOrder(selectedInst, 
+			orderer.placeMarketOrder("ABC", "xyz", selectedInst, 
 									IEngine.OrderCommand.SELL,
 									0.1, 112.00, 50, 0d);
 //		try {

@@ -37,7 +37,8 @@ public class Indicating {
 	/**
 	 * Register a custom indicator in the system
 	 * 
-	@param	file full path to the indicator .jfx file
+	@param	file full path to the indicator .jfx file or just the filename
+	 * if file is inside directory of {@link Indicating#getFilesDir()}
 	 *
 	 */
 	public void registerCustomIndicator(File file) {
@@ -83,11 +84,19 @@ public class Indicating {
 			inputTypeArray = null;
 			optParams = new Integer[]{14};
 		}
+		// TODO add more common indicators
 		else {
 			offerSides = new OfferSide[] {OfferSide.BID};
 			inputTypeArray = new AppliedPrice[] {IIndicators.AppliedPrice.CLOSE};
 			optParams = new Integer[]{20};
 		}
+
+		// note for multi value indicator, .e.g with 4 outputs
+		// http://www.dukascopy.com/swiss/english/forex/jforex/forum/viewtopic.php?f=5&t=24358
+//		double aRsi = ((double[])aArr[0])[0];
+//		double aMfi = ((double[])aArr[1])[0];
+//		double aStoch = ((double[])aArr[2])[0];
+//		double aAvg = ((double[])aArr[3])[0];
 		
 		return getIndicatorResult(instrument, period, functionName, offerSides, 
 				inputTypeArray, optParams, dataPoints);
