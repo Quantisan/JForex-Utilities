@@ -18,9 +18,7 @@ import com.dukascopy.api.IOrder.State;
 public class Ordering {
 	private IContext context;
 	private IEngine engine;
-	//private String strategyTag;
-	//private String setupTag;	// TODO implement in label
-	private int counter;
+	private int counter;	
 	private int slippage;
 	
 	/**
@@ -331,11 +329,25 @@ public class Ordering {
 	}
 
 	/**
-	 * Reset the trade label counter.
+	 * @return the counter
+	 */
+	public int getCounter() {
+		return counter;
+	}
+
+	/**
+	 * @param counter the counter to set
+	 */
+	public void setCounter(int counter) {
+		this.counter = counter;
+	}
+
+	/**
+	 * Reset the trade label counter to zero.
 	 * 
 	 */
 	public void resetCounter() {
-		this.counter = 0;
+		setCounter(0);
 	}
 
 	private class TrailStepTask implements Runnable {

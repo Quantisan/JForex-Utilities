@@ -13,6 +13,7 @@ public class Accounting {
 	private IHistory history;
 	private IContext context;
 	private final Currency ACCOUNTCURRENCY;
+	private double maxEquity;
 	
 	private HashMap<Currency, Instrument> pairs = new HashMap<Currency, Instrument>();
 
@@ -26,6 +27,8 @@ public class Accounting {
 		this.context = context;
 		this.account = context.getAccount();
 		this.history = context.getHistory();
+		this.maxEquity = Double.NEGATIVE_INFINITY;
+		updateMaxEquity();
 		this.ACCOUNTCURRENCY = account.getCurrency();
 		initializeCurrencyPairs();
 	}
@@ -151,11 +154,12 @@ public class Accounting {
 	}
 
 	/**
-	 * Update account information object, call in onAccount().
+	 * Update account information object and max equity, call in onAccount().
 	 * 
 	**/
 	public void update(IAccount account) {
 		this.account = account;
+		updateMaxEquity();
 	}
 	
 	/**
@@ -203,6 +207,46 @@ public class Accounting {
 		lotSize /= parts;
 		
 		return Rounding.lot(lotSize);
+	}
+	
+	/**
+	 * 
+	 * @return account equity
+	 * @see IAccount#getEquity()
+	 */
+	public double getEquity() {
+		return this.account.getEquity();
+	}
+	
+	/**
+	 * @return the maxEquity
+	 */
+	public double getMaxEquity() {
+		return maxEquity;
+	}
+
+	private void updateMaxEquity() {
+		if(getEquity() > this.maxEquity)
+			this.maxEquity = getEquity();
+	}
+	
+	private double getPctProfitLoss() {		
+		return 1 - getEquity()/this.maxEquity;
+	}
+	
+	/**
+	 * 
+	 * @param maxDrawdown maximum drawdown in percent decimal, [0.0, 1.0]. 
+	 * For example, max drawdown of 5% should be entered as 0.05
+	 * 
+	 * @return true if max drawdown is reached
+	 */
+	public boolean isMaxDrawdownBroken(double maxDrawdown) {
+		if (maxDrawdown < 0d || maxDrawdown > 1d) {
+			throw new IllegalArgumentException("maxDrawdown must be [0.0, 1.0]");
+		}
+		updateMaxEquity();
+		return (getPctProfitLoss() < -maxDrawdown);	
 	}
 	
 }
