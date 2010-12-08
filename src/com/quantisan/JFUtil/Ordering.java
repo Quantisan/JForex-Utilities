@@ -290,6 +290,15 @@ public class Ordering {
 	}
 	
 	/**
+	 * Get a list of orders for all instruments
+	 * 
+	@return	a list of orders
+	*/
+	public List<IOrder> getOrders() throws JFException {
+		return this.engine.getOrders();
+	}
+	
+	/**
 	 * Returns a string for labelling an order, which is  
 	 * = Strategy Tag + Day of Month + a counter.  Override this method
 	 * for custom trade label.

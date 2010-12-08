@@ -30,9 +30,16 @@ public class Accounting {
 		this.maxEquity = Double.NEGATIVE_INFINITY;
 		updateMaxEquity();
 		this.ACCOUNTCURRENCY = account.getCurrency();
-		initializeCurrencyPairs();
+		initializeCurrencyPairs();		
 	}
 	
+	/**
+	 * @return the account currency
+	 */
+	public Currency getACCOUNTCURRENCY() {
+		return ACCOUNTCURRENCY;
+	}
+
 	/**
 	 * Initialize currency pairs for getting all major counter 
 	 * to account currency.
@@ -230,7 +237,11 @@ public class Accounting {
 			this.maxEquity = getEquity();
 	}
 	
-	private double getPctProfitLoss() {		
+	/**
+	 * 
+	 * @return current drawdown in negative percentage, positive means profitable
+	 */
+	public double getDrawdown() {		
 		return 1 - getEquity()/this.maxEquity;
 	}
 	
@@ -246,7 +257,7 @@ public class Accounting {
 			throw new IllegalArgumentException("maxDrawdown must be [0.0, 1.0]");
 		}
 		updateMaxEquity();
-		return (getPctProfitLoss() < -maxDrawdown);	
+		return (getDrawdown() < -maxDrawdown);	
 	}
 	
 }
