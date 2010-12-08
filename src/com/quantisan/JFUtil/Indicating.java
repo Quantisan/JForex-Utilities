@@ -44,9 +44,9 @@ public class Indicating {
 	public void registerCustomIndicator(File file) {
 		try {
 			this.indicators.registerCustomIndicator(file);			
-		} catch (JFException ex) {
-			Logging logger = new Logging(getContext().getConsole());			
-			logger.printErr("Cannot register " + file.toString(), ex);
+		} catch (JFException ex) {			
+			Logging.printErr(getContext().getConsole(), 
+							"Cannot register " + file.toString(), ex);
 		}
 	}
 	
@@ -129,9 +129,8 @@ public class Indicating {
 		IBar bar;
 		try {
 			bar = this.history.getBar(instrument, period, this.offerSide, 1);
-		} catch (JFException ex) {
-			Logging logger = new Logging(getContext().getConsole());			
-			logger.printErr("Cannot get bar history", ex);
+		} catch (JFException ex) {		
+			Logging.printErr(getContext().getConsole(), "Cannot get bar history", ex);
 			return null;
 		}
 		
@@ -147,9 +146,8 @@ public class Indicating {
 					dataPoints,
 					bar.getTime(),
 					0);
-		} catch (JFException ex) {
-			Logging logger = new Logging(getContext().getConsole());			
-			logger.printErr("Cannot calculate indicator", ex);
+		} catch (JFException ex) {			
+			Logging.printErr(getContext().getConsole(), "Cannot calculate indicator", ex);
 			return null;
 		}
 		
@@ -174,9 +172,8 @@ public class Indicating {
 		
 		try {
 			bar = this.history.getBar(instrument, period, offerSide, 1);
-		} catch (JFException ex) {
-			Logging logger = new Logging(getContext().getConsole());			
-			logger.printErr("Cannot load bar history", ex);		
+		} catch (JFException ex) {		
+			Logging.printErr(getContext().getConsole(), "Cannot load bar history", ex);		
 			return null;
 		}
 		return bar;
@@ -203,8 +200,7 @@ public class Indicating {
 		}
 		catch (JFException ex) {
 			price = Double.NaN;
-			Logging logger = new Logging(getContext().getConsole());
-			logger.printErr("Cannot get price.", ex);			
+			Logging.printErr(getContext().getConsole(), "Cannot get price.", ex);			
 		}
 		return price;
 	}

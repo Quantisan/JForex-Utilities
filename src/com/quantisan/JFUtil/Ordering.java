@@ -26,8 +26,6 @@ public class Ordering {
 	 * 
 	@param context context of the strategy
 	 *
-	@param strategyTag a tag to identify the strategy for labelling orders
-	 *
 	@param slippage slippage to use
 	 *
 	 */
@@ -119,8 +117,8 @@ public class Ordering {
 	 *
 	 * @param stopLossSize size of the stop loss, in scale of instrument
 	 *
-	 * @see #placeMarketOrder(Instrument, 
-	 * com.dukascopy.api.IEngine.OrderCommand, double, double, double)
+	 * @see #placeMarketOrder(String, String, Instrument, 
+	 * com.dukascopy.api.IEngine.OrderCommand, double, double, double, double)
 	**/
 	public Future<IOrder> placeMarketOrder(String prefix, String suffix,
 											Instrument instrument, 
@@ -136,8 +134,7 @@ public class Ordering {
 				price = getContext().getHistory().getLastTick(instrument).getAsk();
 		}
 		catch(JFException ex) {
-			Logging logger = new Logging(getContext().getConsole());
-			logger.printErr("Cannot get price.", ex);
+			Logging.printErr(getContext().getConsole(), "Cannot get price.", ex);
 			return null;
 		}
 		double stopLossPrice = price + stopLossSize;
@@ -244,8 +241,7 @@ public class Ordering {
 				order.close();
 			}
 			catch (JFException ex) {
-				Logging logger = new Logging(getContext().getConsole());
-				logger.printErr("Cannot close order.", ex);
+				Logging.printErr(getContext().getConsole(), "Cannot close order.", ex);
 			}
 		}
 		else {
@@ -253,8 +249,7 @@ public class Ordering {
 				order.close(Rounding.lot(order.getAmount() * percentage));
 			}
 			catch (JFException ex) {
-				Logging logger = new Logging(getContext().getConsole());
-				logger.printErr("Cannot close order.", ex);
+				Logging.printErr(getContext().getConsole(), "Cannot close order.", ex);
 			}
 		}
 	}
@@ -382,12 +377,10 @@ public class Ordering {
 				try {
 					order = future.get();
 				} catch (InterruptedException ex) {
-					Logging logger = new Logging(getContext().getConsole());
-					logger.printErr("TrailStepTask interrupted.", ex);
+					Logging.printErr(getContext().getConsole(), "TrailStepTask interrupted.", ex);
 	
 				} catch (ExecutionException ex) {
-					Logging logger = new Logging(getContext().getConsole());
-					logger.printErr("TrailStepTask cannot execute.", ex);
+					Logging.printErr(getContext().getConsole(), "TrailStepTask cannot execute.", ex);
 				}
 			}
 			
@@ -435,7 +428,6 @@ public class Ordering {
 		}
 		
 		public IOrder call() {
-			Logging logger;
 			OfferSide side = order.isLong() ? OfferSide.BID : OfferSide.ASK;
 			
 			this.newStop = Rounding.pip(order.getInstrument(), newStop);
@@ -446,10 +438,10 @@ public class Ordering {
 				order.setStopLossPrice(newStop, side, trailStep);
 				order.waitForUpdate(1000);
 			}
-			catch (JFException ex) {
-				logger = new Logging(getContext().getConsole());				
-				logger.printErr(order.getLabel() + "-- couldn't set newStop: " + newStop + 
-						", trailStep: " + trailStep, ex);
+			catch (JFException ex) {				
+				Logging.printErr(getContext().getConsole(), 
+								order.getLabel() + "-- couldn't set newStop: " + 
+								newStop + ", trailStep: " + trailStep, ex);
 				return null;
 			}
 			return order;
@@ -505,8 +497,8 @@ public class Ordering {
 	        				Rounding.pip(this.instrument, this.targetPrice));
     		}
     		catch (JFException ex) {
-				Logging logger = new Logging(getContext().getConsole());
-				logger.printErr(label + "-- cannot place market order.", ex);
+				Logging.printErr(getContext().getConsole(), label + 
+								"-- cannot place market order.", ex);
 				return null;
     		}
     		return order;

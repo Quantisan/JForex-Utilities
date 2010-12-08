@@ -102,8 +102,7 @@ public class Accounting {
 		}
 		catch (JFException ex) {
 			price = Double.NaN;
-			Logging logger = new Logging(this.context.getConsole());
-			logger.printErr("Cannot get price.", ex);			
+			Logging.printErr(getContext().getConsole(), "Cannot get price.", ex);			
 		}
 		return price;
 	}
@@ -117,7 +116,9 @@ public class Accounting {
 	**/
 	public void subscribeTransitionalInstruments(Set<Instrument> instSet) {
 		Currency firstCurr, secondCurr;
-		Set<Instrument> subscribeSet = new HashSet<Instrument>(this.context.getSubscribedInstruments());
+		Set<Instrument> subscribeSet = 
+			new HashSet<Instrument>(getContext().getSubscribedInstruments());
+		
 		for (Instrument instrument : instSet) {
 			firstCurr = instrument.getPrimaryCurrency();
 			secondCurr = instrument.getSecondaryCurrency();		
@@ -127,7 +128,7 @@ public class Accounting {
 				subscribeSet.add(pairs.get(secondCurr));		// transitional pair
 			}
 		}
-		this.context.setSubscribedInstruments(subscribeSet);	
+		getContext().setSubscribedInstruments(subscribeSet);	
 	}
 	
 	/**
@@ -258,6 +259,14 @@ public class Accounting {
 		}
 		updateMaxEquity();
 		return (getDrawdown() < -maxDrawdown);	
+	}
+	
+	/**
+	 * 
+	 * @return context object
+	 */
+	protected IContext getContext() {
+		return context;
 	}
 	
 }

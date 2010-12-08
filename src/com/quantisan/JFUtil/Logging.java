@@ -74,6 +74,21 @@ public class Logging {
 	}
 	
 	/**
+	 * Printing an error message and the stack trace
+	 *
+	@param	console console object
+	 *
+	@param  string an error message to be printed
+	 *  
+	@param  ex the caught exception
+	 *
+	 */
+	public static void printErr(IConsole console, String string, Exception ex) {		
+		ex.printStackTrace(console.getErr());
+		console.getErr().println(string);
+	}
+	
+	/**
 	 * Printing information of an order to console
 	                          
 	@param  order	the order
