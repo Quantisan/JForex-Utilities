@@ -189,6 +189,7 @@ public class Indicating {
 	@return latest tick price
 	 *
 	@see IHistory#getLastTick(Instrument)
+	@deprecated use {@link #getLastTick(Instrument)}
 	**/
 	public double getLastPrice(Instrument instrument, OfferSide offerSide) {
 		double price;
@@ -203,6 +204,27 @@ public class Indicating {
 			Logging.printErr(getContext().getConsole(), "Cannot get price.", ex);			
 		}
 		return price;
+	}
+	
+	/**
+	 * Get the last Tick of an instrument
+	 * 
+	@param instrument the instrument to lookup
+	 *
+	@return latest tick
+	 *
+	@see IHistory#getLastTick(Instrument)
+	**/
+	public ITick getLastTick(Instrument instrument) {
+		ITick tick;
+		try {
+			tick = this.history.getLastTick(instrument);
+		}
+		catch (JFException ex) {	
+			tick = null;
+			Logging.printErr(getContext().getConsole(), "Cannot get price.", ex);			
+		}
+		return tick;
 	}
 
 	/**
