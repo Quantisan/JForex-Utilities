@@ -1,5 +1,11 @@
 package com.quantisan.JFUtil;
 
+/**
+ * Work in progress
+ * 
+ * @author plam
+ *
+ */
 public class Labeller {
 	private static final Labeller INSTANCE = new Labeller();
 	private int counter;

@@ -1,5 +1,11 @@
 package com.quantisan.JFUtil;
 
+/**
+ * Work in progress
+ * 
+ * @author plam
+ *
+ */
 public class Analyzer {
 	private Analyzer() {}
 
