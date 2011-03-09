@@ -7,8 +7,9 @@ import com.dukascopy.api.*;
 /**
  * Accounting class
  *
+ * @deprecated use {@link JForexAccount}
 **/
-public class Accounting {
+@Deprecated public class Accounting {
 	private IAccount account;
 	private IHistory history;
 	private IContext context;

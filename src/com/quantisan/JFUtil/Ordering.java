@@ -14,8 +14,9 @@ import com.dukascopy.api.IOrder.State;
 /**
  * Executing orders in separate threads
  * 
+ * @deprecated use {@link Orderer}
  */
-public class Ordering {
+@Deprecated public class Ordering {
 	private IContext context;
 	private IEngine engine;
 	private int counter;	

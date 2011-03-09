@@ -13,8 +13,9 @@ import com.dukascopy.api.IOrder.State;
 /**
  * Logging operations
  * 
+ * @deprecated use {@link Printer}
  */
-public class Logging {
+@Deprecated public class Logging {
 	private IConsole console;
 	private IHistory history;
 	private File fileDir;		// JForex default write-accessible path

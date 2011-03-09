@@ -6,7 +6,8 @@ import com.dukascopy.api.Instrument;
  * Methods for rounding numbers for JForex compliance
  * 
  */
-public final class Rounding {
+public class Rounding {
+	private Rounding() {}
 	
 	/**
 	 * minimum lot size on JForex
