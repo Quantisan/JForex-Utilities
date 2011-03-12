@@ -1,5 +1,8 @@
 package com.quantisan.JFUtil;
 
+import java.util.Calendar;
+import java.util.TimeZone;
+
 import com.dukascopy.api.*;
 
 /**
@@ -76,12 +79,24 @@ public enum JForexContext {
 	public static double getPrice(Instrument instrument) {
 		double price;
 		try {
-			price = INSTANCE.history.getLastTick(instrument).getBid();
-		}
-		catch (JFException ex) {
+			price = getHistory().getLastTick(instrument).getBid();
+		} catch (JFException ex) {
 			price = Double.NaN;
 			Printer.printErr("Cannot get price.", ex);			
 		}
 		return price;
+	}
+	
+	/**
+	 * @param instrument
+	 * @return time of last tick if available; if not, time of system in GMT
+	 */
+	public static long getTime(Instrument instrument) {
+		try {
+			return getHistory().getTimeOfLastTick(instrument);
+		} catch (JFException ex) {
+			Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+			return calendar.getTimeInMillis();
+		}
 	}
 }

@@ -8,6 +8,7 @@ import com.dukascopy.api.IIndicators.AppliedPrice;
 /**
  * Accessing technical analysis indicators
  * 
+ * @deprecated no more future development
  */
 public class Indicating {
 	private IIndicators indicators;
