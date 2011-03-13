@@ -96,7 +96,7 @@ public enum Pairer {
 	
 	/**
 	 * Calculate the equivalent amount in account currency for each +1 pip on
-	 * a 1,000 position size of an instrument
+	 * a single unit position size (e.g. $1) of an instrument
 	 * 
 	@param instrument the instrument traded
 	 *
@@ -121,7 +121,7 @@ public enum Pairer {
 				output = onePipInitial / transitionalPrice;				
 		}
 		
-		return output * 1000;		// assume 1,000 units traded
+		return output;
 	}
 
 }
