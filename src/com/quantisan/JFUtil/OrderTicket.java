@@ -29,7 +29,7 @@ public class OrderTicket {
 		private String label;
 		private Instrument instrument;
 		private IEngine.OrderCommand command; 
-		private double amount;
+		private double lot;
 		
 		// optional parameters
 		private double price = 0;
@@ -43,14 +43,14 @@ public class OrderTicket {
 		 * @param label unique user defined identifier for the order.
 		 * @param instrument instrument to trade
 		 * @param command type of submitted order
-		 * @param amount amount in millions for the order, will be implicitly rounded with {@link Rounder#lot(double) Rounder.lot}
+		 * @param lot amount in millions for the order, will be implicitly rounded with {@link Rounder#lot(double) Rounder.lot}
 		 */
 		public Builder(String label, Instrument instrument, 
-						OrderCommand command, double amount) {
+						OrderCommand command, double lot) {
 		      this.label = label;
 		      this.instrument = instrument;
 		      this.command = command;
-		      this.amount = amount;
+		      this.lot = lot;
 		  }
 		
 		/**
@@ -140,7 +140,7 @@ public class OrderTicket {
 		label = builder.label;
 		instrument = builder.instrument;
 		command = builder.command;
-		amount = Rounding.lot(builder.amount);
+		lot = Rounding.lot(builder.lot);
 		price = Rounding.pip(instrument, builder.price);
 		slippage = builder.slippage;
 		stopLossPrice = Rounding.pip(instrument, builder.stopLossPrice);
@@ -161,8 +161,8 @@ public class OrderTicket {
 	/**
 	 * @return amount is implicitly rounded with {@link Rounder#lot(double) Rounder.lot}
 	 */
-	public double getAmount() {
-		return amount;
+	public double getLot() {
+		return lot;
 	}
 	/**
 	 * @return price is implicitly rounded with {@link Rounder#pip(Instrument, double) Rounder.pip}
@@ -195,7 +195,7 @@ public class OrderTicket {
 	private final String label;
 	private final Instrument instrument;
 	private final IEngine.OrderCommand command;
-	private final double amount;
+	private final double lot;
 	private final double price;
 	private final double slippage;
 	private final double stopLossPrice;

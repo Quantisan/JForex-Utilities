@@ -257,7 +257,7 @@ public enum Orderer {
     						ticket.getLabel(), 
     						ticket.getInstrument(), 
     						ticket.getOrderCmd(), 
-	    					ticket.getAmount(), 
+	    					ticket.getLot(), 
 	    					ticket.getPrice(), 
 	    					ticket.getSlippage(), 
 	        				ticket.getStopLossPrice(),

@@ -27,7 +27,8 @@ public class jfutilDemo implements IStrategy {
 	@Override
 	public void onBar(Instrument instrument, Period period, IBar askBar,
 			IBar bidBar) throws JFException {	
-		if (period != Period.TEN_SECS) return;		// only run every 10 sec.
+		if (period != Period.TEN_SECS || instrument != Instrument.EURUSD) 
+			return;		// skipping most periods and instruments
 		
 		// *** 1. access IContext and IAccount from anywhere ***
 		Printer.println("Account equity = " + JForexAccount.getEquity());		
@@ -73,7 +74,7 @@ public class jfutilDemo implements IStrategy {
 										.setTakeProfitPrice(targetPrice) // set target
 										.build();
 		// ** 4. Single method to placing orders for all order types and parameters ***
-		Orderer.placeOrder(buySpTicket);		
+		Orderer.placeOrder(buySpTicket);	
 	}
 
 	@Override

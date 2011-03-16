@@ -1,7 +1,12 @@
 package com.quantisan.JFUtil;
 
 import java.util.Currency;
+import java.util.List;
+
 import com.dukascopy.api.IAccount;
+import com.dukascopy.api.IOrder;
+import com.dukascopy.api.Instrument;
+import com.dukascopy.api.JFException;
 
 /**
  * Provides singleton access to JForex IAccount object
@@ -100,46 +105,32 @@ public enum JForexAccount {
 		return INSTANCE.account.getEquity();
 	}
 	
-//	/**
-//	 * Get lot size given size of stop and preferred risk percentage
-//	 * 
-//	@param instrument the instrument traded
-//	 *
-//	@param stopSize	the stop size to use for calculation
-//	 *
-//	@return	a suggested lot size in millions
-//	**/
-//	public static double getLot(Instrument instrument, 
-//			double stopSize) 
-//	{
-//		return getPartLot(instrument, stopSize, 1);
-//	}
-	
-//	/**
-//	 * Get lot size divided by number of parts 
-//	 * given size of stop and preferred risk percentage.
-//	 * For use with splitting a position into multiple trades, such that
-//	 * the total risk is less than the given risk percentage.
-//	 * 
-//	@param instrument the instrument traded
-//	 *
-//	@param stopSize	the stop size to use for calculation
-//	 *
-//	@param parts	number of parts of the position
-//	 *
-//	@return	a suggested partitioned lot size in millions
-//	**/
-//	public static double getPartLot(Instrument instrument, 
-//			double stopSize, int parts) 
-//	{
-//		double riskAmount, lotSize;
-//		double equity = INSTANCE.account.getEquity();
-//		riskAmount = equity * INSTANCE.riskPct;
-//		lotSize = riskAmount / INSTANCE.getAccountRiskPerUnit(instrument, stopSize);
-//		lotSize /= 1e6;		// in millions for JForex API
-//		
-//		lotSize /= parts;
-//		
-//		return Rounder.lot(lotSize);
-//	}
+	/**
+	 * Iterate through the list of opened orders and positions of an instrument
+	 * to calculate the cummulative monetary amount (in account currency) 
+	 * that is at risk. Only includes orders/positions with a stop loss price set.
+	 * 
+	 * @param instrument
+	 * @return amount in account currency at risk, only include orders with stop loss set
+	 * @throws JFException
+	 */
+	public static double getAmountAtRisk(Instrument instrument) throws JFException {
+		double totalValueExposed = 0;
+		
+		List<IOrder> orders = Orderer.getOrders(instrument);
+		for (IOrder order : orders) {
+			if (order.getState() == IOrder.State.FILLED || 
+				order.getState() == IOrder.State.OPENED ||
+				order.getState() == IOrder.State.CREATED) 
+			{			
+				double stop = order.getStopLossPrice();
+				if (stop != 0d) {
+					double pipsExposed = order.getOpenPrice() - order.getStopLossPrice();
+					pipsExposed *= order.isLong() ? 1d : -1d;
+					totalValueExposed += pipsExposed * order.getAmount() * 1e6d;
+				}
+			}
+		}
+		return Pairer.convertValueToAccountCurrency(instrument, totalValueExposed);		
+	}
 }
