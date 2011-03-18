@@ -1,21 +1,105 @@
-package com.quantisan.JFUtil;
+package com.quantisan.JFUtil.IndicatorBean;
 
 import java.io.File;
+import java.util.*;
 
 import com.dukascopy.api.*;
 import com.dukascopy.api.IIndicators.AppliedPrice;
+import com.quantisan.JFUtil.JForexContext;
+import com.quantisan.JFUtil.Logging;
+import com.quantisan.JFUtil.Printer;
 
 /**
  * Accessing technical analysis indicators
  * 
- * @deprecated no more future development
  */
 public class Indicating {
-	private IIndicators indicators;
-	private IHistory history;
-	private OfferSide offerSide;
-	private IContext context;
-	private Filter filter;
+	private static final Indicating INSTANCE = new Indicating();
+	private Filter filter = Filter.NO_FILTER;
+	private Set<String> singleArrayOutputs = new HashSet<String>();
+	//private Set<String> doubleArrayOutputs = new HashSet<String>();
+	
+	private Indicating() {
+		singleArrayOutputs.add("ATR");
+		singleArrayOutputs.add("ULTOSC");
+		singleArrayOutputs.add("RSI");
+		singleArrayOutputs.add("MA");
+	};
+	
+	public static double[] calculate(Instrument instrument, Period period,
+			AbstractIndicatorBean indicatorBean, int dataPoints) throws JFException
+	{
+		// check if this is the function returns a 1-D array
+		if (!INSTANCE.singleArrayOutputs.contains(indicatorBean.getFunctionName())) 
+		{
+			throw new IllegalArgumentException(indicatorBean.getFunctionName() 
+											+ " does not return a 1-dimensional array");
+		}
+		
+		IBar bar = JForexContext.getHistory().getBar(instrument, period, OfferSide.BID, 1);
+		Object[] objs = JForexContext.getIndicators()
+							.calculateIndicator(instrument, 
+												period, 
+												indicatorBean.getOfferSide(), 
+												indicatorBean.getFunctionName(),  
+												indicatorBean.getInputTypes(), 
+												indicatorBean.getParams(),
+												getFilter(),
+												dataPoints,
+												bar.getTime(),
+												0);
+		return (double[])objs[0];
+	}
+	
+	public static double calculate(Instrument instrument, Period period,
+			AbstractIndicatorBean indicatorBean) throws JFException {
+		return calculate(instrument, period, indicatorBean, 1)[0];
+	}
+	
+	/**
+	 * Register a custom indicator in the system before using it. Preferably
+	 * run this in onStart for all your custom indicators.
+	 * 
+	@param	file full path to the indicator .jfx file or just the filename
+	 * if file is inside directory of {@link IContext#getFilesDir()}
+	 *
+	 */
+	public static void registerCustomIndicator(File file) {
+		try {
+			JForexContext.getIndicators().registerCustomIndicator(file);			
+		} catch (JFException ex) {			
+			Printer.printErr("Cannot register " + file.toString(), ex);
+		}
+	}
+
+	/**
+	 * Set the type of chart filter to use.
+	 * 
+	@param	filter	type of chart filter.
+	 *
+	 */
+	public static void setFilter(Filter filter) {
+		INSTANCE.filter = filter;
+	}
+
+	/**
+	 * Get the type of chart filter being used.
+	 * 
+	@return	type of chart filter
+	 *
+	 */
+	public static Filter getFilter() {
+		return INSTANCE.filter;		
+	}
+
+	
+
+	
+	@Deprecated private IIndicators indicators;
+	@Deprecated private IHistory history;
+	@Deprecated private OfferSide offerSide;
+	@Deprecated private IContext context;
+	
 	
 	/**
 	 * Constructor
@@ -23,7 +107,7 @@ public class Indicating {
 	@param	context	IContext for accessing JForex API functions
 	 *
 	 */
-	public Indicating(IContext context) {
+	@Deprecated public Indicating(IContext context) {
 		this.context = context;
 		this.indicators = context.getIndicators();
 		this.history = context.getHistory();
@@ -31,26 +115,10 @@ public class Indicating {
 		this.filter = Filter.WEEKENDS;
 	}
 
-	protected IContext getContext() {
+	@Deprecated protected IContext getContext() {
 		return context;
 	}
 
-	/**
-	 * Register a custom indicator in the system
-	 * 
-	@param	file full path to the indicator .jfx file or just the filename
-	 * if file is inside directory of {@link Indicating#getFilesDir()}
-	 *
-	 */
-	public void registerCustomIndicator(File file) {
-		try {
-			this.indicators.registerCustomIndicator(file);			
-		} catch (JFException ex) {			
-			Logging.printErr(getContext().getConsole(), 
-							"Cannot register " + file.toString(), ex);
-		}
-	}
-	
 	/**
 	 * Get the latest indicator results using default parameters
 	 * 
@@ -66,7 +134,7 @@ public class Indicating {
 
 	@return an array of indicator results
 	 */
-	public double[] getIndicatorResult(Instrument instrument, Period period,
+	@Deprecated public double[] getIndicatorResult(Instrument instrument, Period period,
 			String functionName, int dataPoints) 
 	{
 		AppliedPrice[] inputTypeArray;
@@ -85,7 +153,6 @@ public class Indicating {
 			inputTypeArray = null;
 			optParams = new Integer[]{14};
 		}
-		// TODO add more common indicators
 		else {
 			offerSides = new OfferSide[] {OfferSide.BID};
 			inputTypeArray = new AppliedPrice[] {IIndicators.AppliedPrice.CLOSE};
@@ -123,7 +190,7 @@ public class Indicating {
 	 *
 	@see IIndicators#calculateIndicator(Instrument, Period, OfferSide[], String, AppliedPrice[], Object[], Filter, int, long, int)
 	 */
-	public double[] getIndicatorResult(Instrument instrument, Period period, 
+	@Deprecated public double[] getIndicatorResult(Instrument instrument, Period period, 
 			String functionName, OfferSide[] offerSides, 
 			AppliedPrice[] inputTypes, Object[] params,	int dataPoints) 
 	{
@@ -168,7 +235,7 @@ public class Indicating {
 	 *
 	@see IHistory#getBar(Instrument, Period, OfferSide, int)
 	 */	
-	public IBar getLastBar(Instrument instrument, Period period, OfferSide offerSide) {
+	@Deprecated public IBar getLastBar(Instrument instrument, Period period, OfferSide offerSide) {
 		IBar bar;
 		
 		try {
@@ -189,10 +256,8 @@ public class Indicating {
 	 *
 	@return latest tick price
 	 *
-	@see IHistory#getLastTick(Instrument)
-	@deprecated use {@link #getLastTick(Instrument)}
 	**/
-	public double getLastPrice(Instrument instrument, OfferSide offerSide) {
+	@Deprecated public double getLastPrice(Instrument instrument, OfferSide offerSide) {
 		double price;
 		try {
 			if (offerSide == OfferSide.BID)
@@ -216,14 +281,14 @@ public class Indicating {
 	 *
 	@see IHistory#getLastTick(Instrument)
 	**/
-	public ITick getLastTick(Instrument instrument) {
+	@Deprecated public ITick getLastTick(Instrument instrument) throws JFException {
 		ITick tick;
 		try {
-			tick = this.history.getLastTick(instrument);
+			tick = JForexContext.getHistory().getLastTick(instrument);
 		}
 		catch (JFException ex) {	
 			tick = null;
-			Logging.printErr(getContext().getConsole(), "Cannot get price.", ex);			
+			Printer.printErr("Cannot get price.", ex);			
 		}
 		return tick;
 	}
@@ -235,7 +300,7 @@ public class Indicating {
 	 *
 	@see IContext#getFilesDir()
 	 */
-	public String getFilesDir() {
+	@Deprecated public String getFilesDir() {
 		return this.context.getFilesDir().toString();
 	}
 
@@ -245,7 +310,7 @@ public class Indicating {
 	@param	ofs OfferSide.BID or OfferSide.ASK
 	 *
 	 */
-	public void setOfferSide(OfferSide ofs) {
+	@Deprecated public void setOfferSide(OfferSide ofs) {
 		this.offerSide = ofs;
 	}
 
@@ -255,27 +320,7 @@ public class Indicating {
 	@return	offer side, bid or ask
 	 *
 	 */
-	public OfferSide getOfferSide() {
+	@Deprecated public OfferSide getOfferSide() {
 		return offerSide;
-	}
-
-	/**
-	 * Set the type of chart filter to use.
-	 * 
-	@param	filter	type of chart filter.
-	 *
-	 */
-	public void setFilter(Filter filter) {
-		this.filter = filter;
-	}
-
-	/**
-	 * Get the type of chart filter being used.
-	 * 
-	@return	type of chart filter
-	 *
-	 */
-	public Filter getFilter() {
-		return filter;		
 	}
 }

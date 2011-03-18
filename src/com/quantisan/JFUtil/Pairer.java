@@ -19,7 +19,7 @@ public enum Pairer {
 	private final Currency ACCOUNTCURRENCY;
 	
 	private Pairer() {
-		ACCOUNTCURRENCY = JForexAccount.getAccountCurrency();
+		ACCOUNTCURRENCY = JForexAccount.getCurrency();
 		initializeMajorPairs();
 	}
 	

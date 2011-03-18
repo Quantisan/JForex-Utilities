@@ -51,9 +51,17 @@ public enum JForexAccount {
 	}
 
 	/**
+	 * @deprecated use {@link #getCurrency()}
 	 * @return the account currency
 	 */
-	public static Currency getAccountCurrency() {
+	@Deprecated public static Currency getAccountCurrency() {
+		return INSTANCE.account.getCurrency();
+	}
+	
+	/**
+	 * @return the account currency
+	 */
+	public static Currency getCurrency() {
 		return INSTANCE.account.getCurrency();
 	}
 	
@@ -97,9 +105,8 @@ public enum JForexAccount {
 	}
 	
 	/**
-	 * 
 	 * @return account equity
-	 * @see IAccount#getEquity()
+	 * 
 	 */
 	public static double getEquity() {
 		return INSTANCE.account.getEquity();

@@ -1,6 +1,13 @@
 import java.util.*;
 import com.dukascopy.api.*;
 import com.quantisan.JFUtil.*;
+import com.quantisan.JFUtil.IndicatorBean.*;
+
+/*
+ * Changelog:
+ * March 17: 
+ * 
+ */
 
 @Library("JFQuantisan.jar")		// place this file in your ../JForex/Strategy/files folder
 public class jfutilDemo implements IStrategy {	
@@ -31,26 +38,30 @@ public class jfutilDemo implements IStrategy {
 			return;		// skipping most periods and instruments
 		
 		// *** 1. access IContext and IAccount from anywhere ***
-		Printer.println("Account equity = " + JForexAccount.getEquity());		
+		//Printer.println("Account equity = " + JForexAccount.getEquity());		
+
+		// *** 2. simpler indicator use with intuitive method calls ***
+		// get an EMA indicator value by building an indicator bean
+		MovingAverage maBean = IndicatorBeanFactory.getMovingAverage();
+		// then sets its parameters with obvious method names
+		maBean.setAppliedPrice(IIndicators.AppliedPrice.MEDIAN_PRICE)
+				.setMAType(IIndicators.MaType.EMA)
+				.setWidth(14);		
+		double ema = Indicating.calculate(instrument, Period.ONE_MIN, maBean);		
 		
-		// get an EMA indicator value
-		double ema = JForexContext.getIndicators().ema(instrument, 
-				Period.TEN_SECS, OfferSide.BID, 
-				IIndicators.AppliedPrice.MEDIAN_PRICE, 14, 1);	
-		
-		Printer.println(instrument.toString() + " EMA = " + ema);	// printing the EMA value
-		
-		
-		// *** 2. Profit/loss calculation to account currency before placing your order ***
+		// printing the EMA value
+		Printer.println(instrument.toString() + " EMA = " + ema);	
+				
+		// *** 3. Profit/loss calculation to account currency before placing your order ***
 		// Demonstrating currency conversion
 		double risk = 100 * Pairer.convertPipToAccountCurrency(instrument);
-		String symbol = JForexAccount.getAccountCurrency().getSymbol();
+		String symbol = JForexAccount.getCurrency().getSymbol();
 		Printer.println(symbol + risk + 
 				" risked in for 1,000 units and 100 pips move in " + 
 				instrument.toString());
 		
 		
-		// ** 3. Simplify order parameters with order ticket builder ***
+		// ** 4. Simplify order parameters with order ticket builder ***
 		// Demonstrating trade ordering		
 		String label = instrument.toString().substring(0,2) + ++counter;
 		OrderTicket mktBuyTicket = new OrderTicket			// order ticket
@@ -73,7 +84,7 @@ public class jfutilDemo implements IStrategy {
 										.setStopLossPrice(stopPrice)	// set stop price to ticket
 										.setTakeProfitPrice(targetPrice) // set target
 										.build();
-		// ** 4. Single method to placing orders for all order types and parameters ***
+		// ** 5. Single method to placing orders for all order types and parameters ***
 		Orderer.placeOrder(buySpTicket);	
 	}
 
