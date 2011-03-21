@@ -26,6 +26,16 @@ public class Indicating {
 		singleArrayOutputs.add("MA");
 	};
 	
+	/**
+	 * Register a custom indicator function name as outputting a single array. 
+	 * Call immediately after {@link Indicating#registerCustomIndicator(File)}
+	 * 
+	 * @param functionName
+	 */
+	public static void registerSingleArrayOutputs(String functionName) {
+		INSTANCE.singleArrayOutputs.add(functionName);
+	}
+	
 	public static double[] calculate(Instrument instrument, Period period,
 			AbstractIndicatorBean indicatorBean, int dataPoints) throws JFException
 	{

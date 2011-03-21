@@ -6,16 +6,16 @@ import com.dukascopy.api.IIndicators.AppliedPrice;
 
 public class MovingAverage extends AbstractIndicatorBean {	
 	MovingAverage() {
-		this.functionName = "MA";	// must do this
+		MovingAverage.functionName = "MA";	// must do this
 
 		// setting default parameters
-		offerSides = new OfferSide[] {OfferSide.BID};
+		this.offerSides = new OfferSide[] {OfferSide.BID};
 		this.optParams = new Integer[]{20, IIndicators.MaType.SMA.ordinal()};
 		this.inputTypeArray = new AppliedPrice[] {IIndicators.AppliedPrice.CLOSE};
 	}
 	
 	/**
-	 * @param mt	type of moving average implementation to use
+	 * @param mt	type of moving average implementation to use (default: SMA)
 	 * @return
 	 */
 	public MovingAverage setMAType(IIndicators.MaType mt) {
@@ -24,7 +24,7 @@ public class MovingAverage extends AbstractIndicatorBean {
 	}
 	
 	/**
-	 * @param width	number of price bars to used for calculation
+	 * @param width	number of price bars to used for calculation (default: 20)
 	 * @return
 	 */
 	public MovingAverage setWidth(int width) {
@@ -33,7 +33,7 @@ public class MovingAverage extends AbstractIndicatorBean {
 	}
 
 	/**
-	 * @param ap	which price to use for calculation
+	 * @param ap	which price to use for calculation (default: CLOSE)
 	 * @return
 	 */
 	public MovingAverage setAppliedPrice(AppliedPrice ap) {
@@ -42,11 +42,16 @@ public class MovingAverage extends AbstractIndicatorBean {
 	}
 
 	/**
-	 * @param os	side (i.e. bid or ask) of price to use for calculation
+	 * @param os	side (i.e. bid or ask) of price to use for calculation (default: BID)
 	 * @return
 	 */
 	public MovingAverage setOfferSide(OfferSide os) {
 		offerSides[0] = os;
 		return this;
+	}
+
+	@Override
+	public String toString() {
+		return "Moving Average";
 	}
 }

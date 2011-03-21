@@ -46,7 +46,8 @@ public class jfutilDemo implements IStrategy {
 		// then sets its parameters with obvious method names
 		maBean.setAppliedPrice(IIndicators.AppliedPrice.MEDIAN_PRICE)
 				.setMAType(IIndicators.MaType.EMA)
-				.setWidth(14);		
+				.setWidth(14);		// all of these are optional parameters	
+		// feed the bean into a generic calculation method to get the result
 		double ema = Indicating.calculate(instrument, Period.ONE_MIN, maBean);		
 		
 		// printing the EMA value

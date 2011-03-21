@@ -1,19 +1,14 @@
 package com.quantisan.JFUtil.IndicatorBean;
 
-import com.dukascopy.api.IIndicators;
 import com.dukascopy.api.OfferSide;
-import com.dukascopy.api.IIndicators.AppliedPrice;
 
 public class AverageTrueRange extends AbstractIndicatorBean {
-	OfferSide[] offerSides = new OfferSide[] {OfferSide.BID};
-	Integer[] optParams = new Integer[]{14};
-	
 	AverageTrueRange() {
-		this.functionName = "ATR";	// must do this
+		AverageTrueRange.functionName = "ATR";	// must do this
 		this.inputTypeArray = null;		// must be null for no appliedprice
 		
 		// setting default parameters
-		offerSides = new OfferSide[] {OfferSide.BID};
+		this.offerSides = new OfferSide[] {OfferSide.BID};
 		this.optParams = new Integer[]{14};
 	}
 	
@@ -33,5 +28,10 @@ public class AverageTrueRange extends AbstractIndicatorBean {
 	public AverageTrueRange setOfferSide(OfferSide os) {
 		offerSides[0] = os;
 		return this;
+	}
+
+	@Override
+	public String toString() {
+		return "Average True Range";
 	}
 }

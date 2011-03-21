@@ -1,7 +1,7 @@
 package com.quantisan.JFUtil.IndicatorBean;
 
 public class IndicatorBeanFactory {
-	private IndicatorBeanFactory() {};
+	protected IndicatorBeanFactory() {};
 	
 	/**
 	 * Average True Range (ATR)
@@ -16,4 +16,11 @@ public class IndicatorBeanFactory {
 	 * @return moving average bean
 	 */
 	public static MovingAverage getMovingAverage() { return new MovingAverage(); }
+	
+	/**
+	 * Ultimate Oscillator (UltOsc)
+	 * 
+	 * @return UltOsc bean
+	 */
+	public static UltimateOscillator getUltimateOscillator() { return new UltimateOscillator(); }
 }
