@@ -5,6 +5,7 @@ import java.util.*;
 
 import com.dukascopy.api.*;
 import com.dukascopy.api.IIndicators.AppliedPrice;
+import com.dukascopy.api.indicators.IIndicator;
 import com.quantisan.JFUtil.JForexContext;
 import com.quantisan.JFUtil.Logging;
 import com.quantisan.JFUtil.Printer;
@@ -74,12 +75,14 @@ public class Indicating {
 	 * if file is inside directory of {@link IContext#getFilesDir()}
 	 *
 	 */
-	public static void registerCustomIndicator(File file) {
-		try {
-			JForexContext.getIndicators().registerCustomIndicator(file);			
-		} catch (JFException ex) {			
-			Printer.printErr("Cannot register " + file.toString(), ex);
-		}
+	public static void registerCustomIndicator(File file) throws JFException {
+		JForexContext.getIndicators().registerCustomIndicator(file);			
+	}
+	
+	public static void registerCustomIndicator(Class<? extends IIndicator> indicatorClass)
+		throws JFException
+	{
+		JForexContext.getIndicators().registerCustomIndicator(indicatorClass);
 	}
 
 	/**
@@ -101,8 +104,6 @@ public class Indicating {
 	public static Filter getFilter() {
 		return INSTANCE.filter;		
 	}
-
-	
 
 	
 	@Deprecated private IIndicators indicators;

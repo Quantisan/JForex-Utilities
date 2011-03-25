@@ -4,7 +4,7 @@ import com.dukascopy.api.IIndicators.AppliedPrice;
 import com.dukascopy.api.OfferSide;
 
 public abstract class AbstractIndicatorBean {
-	protected static String functionName;
+	protected String functionName;
 	protected OfferSide[] offerSides;
 	protected Integer[] optParams;
 	protected AppliedPrice[] inputTypeArray;

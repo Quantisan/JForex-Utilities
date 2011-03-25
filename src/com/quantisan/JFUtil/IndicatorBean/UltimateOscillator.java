@@ -4,7 +4,7 @@ import com.dukascopy.api.OfferSide;
 
 public class UltimateOscillator extends AbstractIndicatorBean {
 	UltimateOscillator() {
-		UltimateOscillator.functionName = "ULTOSC";
+		this.functionName = "ULTOSC";
 		
 		this.offerSides = new OfferSide[] {OfferSide.BID};
 		this.optParams = new Integer[]{7, 14, 28};

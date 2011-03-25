@@ -4,7 +4,7 @@ import com.dukascopy.api.OfferSide;
 
 public class AverageTrueRange extends AbstractIndicatorBean {
 	AverageTrueRange() {
-		AverageTrueRange.functionName = "ATR";	// must do this
+		this.functionName = "ATR";	// must do this
 		this.inputTypeArray = null;		// must be null for no appliedprice
 		
 		// setting default parameters

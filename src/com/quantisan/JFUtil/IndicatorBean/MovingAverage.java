@@ -6,7 +6,7 @@ import com.dukascopy.api.IIndicators.AppliedPrice;
 
 public class MovingAverage extends AbstractIndicatorBean {	
 	MovingAverage() {
-		MovingAverage.functionName = "MA";	// must do this
+		this.functionName = "MA";	// must do this
 
 		// setting default parameters
 		this.offerSides = new OfferSide[] {OfferSide.BID};
