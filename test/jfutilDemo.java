@@ -11,8 +11,6 @@ import com.quantisan.JFUtil.IndicatorBean.*;
 
 @Library("JFQuantisan.jar")		// place this file in your ../JForex/Strategy/files folder
 public class jfutilDemo implements IStrategy {	
-	private int counter = new Random().nextInt(100);
-	
 	@Override
 	public void onStart(IContext context) throws JFException {
 		// ** Essential steps **
@@ -64,7 +62,7 @@ public class jfutilDemo implements IStrategy {
 		
 		// ** 4. Simplify order parameters with order ticket builder ***
 		// Demonstrating trade ordering		
-		String label = instrument.toString().substring(0,2) + ++counter;
+		String label = LabelMaker.getLabel(instrument) + 'a';
 		OrderTicket mktBuyTicket = new OrderTicket			// order ticket
 										.Builder(label, 	// setting required ticket info
 												instrument, 
@@ -76,7 +74,8 @@ public class jfutilDemo implements IStrategy {
 		// market buy order with a 100 pips stop and 100 pips target
 		double stopPrice = JForexContext.getPrice(instrument) - (100 * instrument.getPipValue());
 		double targetPrice = JForexContext.getPrice(instrument) + (100 * instrument.getPipValue());
-		label = instrument.toString().substring(0,2) + ++counter;
+		
+		label = LabelMaker.getLabel(instrument) + 'b';
 		OrderTicket buySpTicket = new OrderTicket
 										.Builder(label, 
 												instrument, 
@@ -99,6 +98,7 @@ public class jfutilDemo implements IStrategy {
 	public void onStop() throws JFException {
 		for (IOrder order : Orderer.getOrders())	// close all orders
 			Orderer.close(order);
+			//order.close();
 	}
 	
 	

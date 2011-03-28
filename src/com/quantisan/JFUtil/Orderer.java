@@ -42,6 +42,42 @@ public enum Orderer {
 	}
 	
 	/**
+	 * Set the stop loss and trail step of an order in a new Thread
+	 * 
+	@param	order the order to be changed
+	 *
+	@param	newStop new stop loss price
+	 *
+	@param	trailStep trailing step in pips, must be greater than 10
+	 *
+	@see IOrder#setStopLossPrice(double, OfferSide, double)
+	 *
+	*/
+	public static Future<IOrder> setStopLoss(IOrder order, double newStop, 
+			double trailStep) {		
+		StopTask task = INSTANCE.new StopTask(order, newStop, trailStep);
+		return JForexContext.getContext().executeTask(task);
+	}
+	
+	/**
+	 * Set the stop loss and trail step of an order in a new Thread
+	 * 
+	@param	future the future order to be changed
+	 *
+	@param	newStop new stop loss price
+	 *
+	@param	trailStep trailing step in pips, must be greater than 10
+	 *
+	@see IOrder#setStopLossPrice(double, OfferSide, double)
+	 *
+	*/
+	public static Future<IOrder> setStopLoss(Future<IOrder> future, double newStop, 
+			double trailStep) {		
+		StopTask task = INSTANCE.new StopTask(future, newStop, trailStep);
+		return JForexContext.getContext().executeTask(task);
+	}
+
+	/**
 	 * Send an order in its own separate thread
 	 * 
 	 * @param ticket encapsulated order information
@@ -59,7 +95,7 @@ public enum Orderer {
 	 * 
 	@param	order	the order to be closed
 	 */
-	public static void close(IOrder order) {
+	public static void close(IOrder order) throws JFException {
 		close(order , 1d);
 	}
 	
@@ -71,47 +107,18 @@ public enum Orderer {
 	@param	percentage	the percentage of the amount to be closed, 
 	 *		value (0, 1]
 	*/
-	public static void close(IOrder order, double percentage) {
+	public static void close(IOrder order, double percentage) throws JFException {
 		if (percentage <= 0d || percentage > 1d) {
 			throw new IllegalArgumentException("percentage must in range (0, 1]");
 		}
-		else if (percentage == 1d) {		// close all
-			// TODO move to Callable?
-			try {
-				order.close();
-			}
-			catch (JFException ex) {
-				Printer.printErr("Cannot close order.", ex);
-			}
+		else if (percentage == 1d) {		// close full amount
+			order.close();
 		}
-		else {
-			try {
-				order.close(Rounding.lot(order.getAmount() * percentage));
-			}
-			catch (JFException ex) {
-				Printer.printErr("Cannot close order.", ex);
-			}
+		else {								// close partial amount
+			order.close(Rounding.lot(order.getAmount() * percentage));
 		}
 	}
 	
-	
-	/**
-	 * Set the stop loss and trail step of an order in a new Thread
-	 * 
-	@param	order the order to be changed
-	 *
-	@param	newStop new stop loss price
-	 *
-	@param	trailStep trailing step in pips, greater than 10
-	 *
-	@see IOrder#setStopLossPrice(double, OfferSide, double)
-	 *
-	*/
-	public static Future<IOrder> setStopLoss(IOrder order, double newStop, 
-			double trailStep) {		
-		StopTask task = INSTANCE.new StopTask(order, newStop, trailStep);
-		return JForexContext.getContext().executeTask(task);
-	}
 	
 	/**
 	 * Get a list of orders for the particular instrument
@@ -154,7 +161,7 @@ public enum Orderer {
 		public void run() {			
 			if (future != null) {
 				try {
-					order = future.get();
+					order = future.get();		// wait for order
 				} catch (InterruptedException ex) {
 					Printer.printErr("TrailStepTask interrupted.", ex);
 	
@@ -166,16 +173,9 @@ public enum Orderer {
 			// set trailing step only if trailStep is >= 10d and 
 			// there is no trailing step in order already
 			if (trailStep < 10d || order.getTrailingStep() != 0d)
-				return;
-					
-			for (int i = 0; i < 10; i++) {
-				if (order.getState() != State.FILLED && order.getState() != State.OPENED) {
-					order.waitForUpdate(1000);
-				}
-				else	break;
-			}
+				return;			
 			
-			// TODO how to overcome "change to same stop loss price warning"
+			// TODO overcome "change to same stop loss price warning"
 			setStopLoss(order, order.getStopLossPrice(), this.trailStep);			
 		}
 	}
@@ -186,6 +186,7 @@ public enum Orderer {
 	 */
 	private class StopTask implements Callable<IOrder> {
 		private IOrder order;
+		private Future<IOrder> future;
 		private double newStop, trailStep;	
 		
 		/**
@@ -199,14 +200,39 @@ public enum Orderer {
 		 *
 		@see IOrder#setStopLossPrice(double, OfferSide, double)
 		 */
-		public StopTask(IOrder order, double newStop, 
-				double trailStep) {
+		public StopTask(IOrder order, double newStop, double trailStep) 
+		{
 			this.order = order;
 			this.newStop = newStop;
 			this.trailStep = trailStep;
 		}
 		
+		public StopTask(Future<IOrder> future, double newStop, double trailStep) 
+		{
+			this.future = future;
+			this.newStop = newStop;
+			this.trailStep = trailStep;
+		}
+		
 		public IOrder call() {
+			if (future != null) {
+				try {
+					this.order = this.future.get();		// wait for order
+				} catch (InterruptedException ex) {
+					Printer.printErr("TrailStepTask interrupted.", ex);
+	
+				} catch (ExecutionException ex) {
+					Printer.printErr("TrailStepTask cannot execute.", ex);
+				}
+			}
+			
+			for (int i = 0; i < 10; i++) {		// wait for order in correct state
+				if (order.getState() != State.FILLED && order.getState() != State.OPENED) {
+					order.waitForUpdate(1000);
+				}
+				else	break;
+			}
+			
 			OfferSide side = order.isLong() ? OfferSide.BID : OfferSide.ASK;
 			
 			this.newStop = Rounding.pip(order.getInstrument(), newStop);

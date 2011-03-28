@@ -18,13 +18,16 @@ public class Indicating {
 	private static final Indicating INSTANCE = new Indicating();
 	private Filter filter = Filter.NO_FILTER;
 	private Set<String> singleArrayOutputs = new HashSet<String>();
-	//private Set<String> doubleArrayOutputs = new HashSet<String>();
+	private Set<String> multiArrayOutputs = new HashSet<String>();
 	
 	private Indicating() {
 		singleArrayOutputs.add("ATR");
 		singleArrayOutputs.add("ULTOSC");
 		singleArrayOutputs.add("RSI");
 		singleArrayOutputs.add("MA");
+		
+		multiArrayOutputs.add("STOCH");
+		multiArrayOutputs.add("STOCHRSI");
 	};
 	
 	/**
@@ -35,6 +38,16 @@ public class Indicating {
 	 */
 	public static void registerSingleArrayOutputs(String functionName) {
 		INSTANCE.singleArrayOutputs.add(functionName);
+	}
+	
+	/**
+	 * Register a custom indicator function name as outputting a N-dimensional array. 
+	 * Call immediately after {@link Indicating#registerCustomIndicator(File)}
+	 * 
+	 * @param functionName
+	 */
+	public static void registerMultiArrayOutputs(String functionName) {
+		INSTANCE.multiArrayOutputs.add(functionName);
 	}
 	
 	public static double[] calculate(Instrument instrument, Period period,
@@ -66,6 +79,47 @@ public class Indicating {
 			AbstractIndicatorBean indicatorBean) throws JFException {
 		return calculate(instrument, period, indicatorBean, 1)[0];
 	}
+	
+	/**
+	 * BETA: not a good design, expect changes to this method interface
+	 * 
+	 * @param instrument
+	 * @param period
+	 * @param indicatorBean
+	 * @param dataPoints
+	 * @return
+	 * @throws JFException
+	 */
+	public static Object[] calculateMultiDimension(Instrument instrument, Period period,
+			AbstractIndicatorBean indicatorBean, int dataPoints) throws JFException
+	{
+		// check if this is the function returns a 1-D array
+		if (!INSTANCE.multiArrayOutputs.contains(indicatorBean.getFunctionName())) 
+		{
+			throw new IllegalArgumentException(indicatorBean.getFunctionName() 
+											+ " does not return a 2-dimensional array");
+		}
+		
+		IBar bar = JForexContext.getHistory().getBar(instrument, period, OfferSide.BID, 1);
+		Object[] objs = JForexContext.getIndicators()
+							.calculateIndicator(instrument, 
+												period, 
+												indicatorBean.getOfferSide(), 
+												indicatorBean.getFunctionName(),  
+												indicatorBean.getInputTypes(), 
+												indicatorBean.getParams(),
+												getFilter(),
+												dataPoints,
+												bar.getTime(),
+												0);
+		return objs;
+//		double[][] output = new double[2][];
+//		output[0] = (double[])objs[0];
+//		output[1] = (double[])objs[1];
+//		return output;
+	}
+	
+	
 	
 	/**
 	 * Register a custom indicator in the system before using it. Preferably

@@ -20,7 +20,21 @@ public class IndicatorBeanFactory {
 	/**
 	 * Ultimate Oscillator (UltOsc)
 	 * 
-	 * @return UltOsc bean
+	 * @return Ult Osc bean
 	 */
 	public static UltimateOscillator getUltimateOscillator() { return new UltimateOscillator(); }
+	
+	/**
+	 * Stochastic Oscillator (STOCH)
+	 * 
+	 * @return stoch bean
+	 */
+	public static Stochastic getStochastic() { return new Stochastic(); }
+	
+	/**
+	 * Stochastic Relative Strength Index (STOCHRSI)
+	 * 
+	 * @return stoch-RSI bean
+	 */
+	public static StochasticRelativeStrengthIndex getStochasticRSI() { return new StochasticRelativeStrengthIndex(); }
 }
