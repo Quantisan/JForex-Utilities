@@ -32,6 +32,12 @@ public class IndicatorBeanFactory {
 	public static Stochastic getStochastic() { return new Stochastic(); }
 	
 	/**
+	 * Fast Stochasic Oscillator (STOCHF)
+	 * @return fast stoch bean
+	 */
+	public static FastStochastic getFastStochastic() { return new FastStochastic(); }
+	
+	/**
 	 * Stochastic Relative Strength Index (STOCHRSI)
 	 * 
 	 * @return stoch-RSI bean

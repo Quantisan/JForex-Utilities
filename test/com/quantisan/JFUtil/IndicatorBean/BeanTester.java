@@ -25,8 +25,8 @@ public class BeanTester implements IStrategy {
 	{
 		if (period != Period.TEN_SECS || instrument != Instrument.EURUSD)	return;
 				
-		StochasticRelativeStrengthIndex srBean = IndicatorBeanFactory.getStochasticRSI();
-		Object[] objs = Indicating.calculateMultiDimension(instrument, Period.ONE_MIN, srBean, 1);
+		FastStochastic fsBean = IndicatorBeanFactory.getFastStochastic();
+		Object[] objs = Indicating.calculateMultiDimension(instrument, Period.ONE_MIN, fsBean, 1);
 
 		double[][] sto = new double[2][];
 		sto[0] = (double[])objs[0];		// %K values
@@ -42,16 +42,16 @@ public class BeanTester implements IStrategy {
 		JForexAccount.setAccount(context.getAccount());
 		
 		Indicating.setFilter(Filter.WEEKENDS);
-		Stochastic stochBean = IndicatorBeanFactory.getStochastic();
-
-		Object[] objs = Indicating.calculateMultiDimension(Instrument.EURUSD, Period.ONE_MIN, stochBean, 1);
-
-		double[][] sto = new double[2][];
-		sto[0] = (double[])objs[0];
-		sto[1] = (double[])objs[1];
-		
-		Printer.println(Instrument.EURUSD.toString() + " sto = " + sto[0][0]
-		                                      + " / " + sto[1][0]);	
+//		Stochastic stochBean = IndicatorBeanFactory.getStochastic();
+//
+//		Object[] objs = Indicating.calculateMultiDimension(Instrument.EURUSD, Period.ONE_MIN, stochBean, 1);
+//
+//		double[][] sto = new double[2][];
+//		sto[0] = (double[])objs[0];
+//		sto[1] = (double[])objs[1];
+//		
+//		Printer.println(Instrument.EURUSD.toString() + " sto = " + sto[0][0]
+//		                                      + " / " + sto[1][0]);	
 	}
 
 	@Override

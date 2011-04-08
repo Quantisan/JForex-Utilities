@@ -27,6 +27,7 @@ public class Indicating {
 		singleArrayOutputs.add("MA");
 		
 		multiArrayOutputs.add("STOCH");
+		multiArrayOutputs.add("STOCHF");
 		multiArrayOutputs.add("STOCHRSI");
 	};
 	
