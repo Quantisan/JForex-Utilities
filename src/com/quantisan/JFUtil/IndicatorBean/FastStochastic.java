@@ -36,7 +36,7 @@ public class FastStochastic extends AbstractIndicatorBean {
 	 * @param mt	type of moving average use for fast %D line (default: SMA)
 	 * @return
 	 */
-	public FastStochastic setSlowKMAType(IIndicators.MaType mt) {
+	public FastStochastic setFastDMAType(IIndicators.MaType mt) {
 		optParams[2] = mt.ordinal();
 		return this;
 	}
