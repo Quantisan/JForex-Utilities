@@ -1,13 +1,22 @@
 package com.quantisan.JFUtil.IndicatorBean;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
-import com.dukascopy.api.*;
+import com.dukascopy.api.Filter;
+import com.dukascopy.api.IBar;
+import com.dukascopy.api.IContext;
+import com.dukascopy.api.IHistory;
+import com.dukascopy.api.IIndicators;
 import com.dukascopy.api.IIndicators.AppliedPrice;
+import com.dukascopy.api.ITick;
+import com.dukascopy.api.Instrument;
+import com.dukascopy.api.JFException;
+import com.dukascopy.api.OfferSide;
+import com.dukascopy.api.Period;
 import com.dukascopy.api.indicators.IIndicator;
 import com.quantisan.JFUtil.JForexContext;
-import com.quantisan.JFUtil.Logging;
 import com.quantisan.JFUtil.Printer;
 
 /**
@@ -29,6 +38,7 @@ public class Indicating {
 		multiArrayOutputs.add("STOCH");
 		multiArrayOutputs.add("STOCHF");
 		multiArrayOutputs.add("STOCHRSI");
+		multiArrayOutputs.add("MACD");
 	};
 	
 	/**
@@ -264,7 +274,7 @@ public class Indicating {
 		try {
 			bar = this.history.getBar(instrument, period, this.offerSide, 1);
 		} catch (JFException ex) {		
-			Logging.printErr(getContext().getConsole(), "Cannot get bar history", ex);
+			Printer.printErr("Cannot get bar history", ex);
 			return null;
 		}
 		
@@ -281,7 +291,7 @@ public class Indicating {
 					bar.getTime(),
 					0);
 		} catch (JFException ex) {			
-			Logging.printErr(getContext().getConsole(), "Cannot calculate indicator", ex);
+			Printer.printErr("Cannot calculate indicator", ex);
 			return null;
 		}
 		
@@ -307,7 +317,7 @@ public class Indicating {
 		try {
 			bar = this.history.getBar(instrument, period, offerSide, 1);
 		} catch (JFException ex) {		
-			Logging.printErr(getContext().getConsole(), "Cannot load bar history", ex);		
+			Printer.printErr("Cannot load bar history", ex);		
 			return null;
 		}
 		return bar;
@@ -333,7 +343,7 @@ public class Indicating {
 		}
 		catch (JFException ex) {
 			price = Double.NaN;
-			Logging.printErr(getContext().getConsole(), "Cannot get price.", ex);			
+			Printer.printErr("Cannot get price.", ex);			
 		}
 		return price;
 	}

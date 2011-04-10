@@ -18,6 +18,22 @@ public class IndicatorBeanFactory {
 	public static MovingAverage getMovingAverage() { return new MovingAverage(); }
 	
 	/**
+	 * Moving Average Convergence-Divergence (MACD).
+	 * 
+	 * Example use to cast the output:
+	 * 
+	 * <pre>{@code 
+		*double[][] macd = new double[3][];
+		*macd[0] = (double[])objs[0];		// macd values
+		*macd[1] = (double[])objs[1];		// signal values
+		*macd[2] = (double[])objs[2];		// histogram values}</pre>
+	 * 
+	 * @author plam
+	 * @return macd bean
+	 */
+	public static MovingAverageConvergenceDivergence getMovingAverageConvergenceDivergence() { return new MovingAverageConvergenceDivergence(); }
+	
+	/**
 	 * Ultimate Oscillator (UltOsc)
 	 * 
 	 * @return Ult Osc bean

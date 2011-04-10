@@ -25,15 +25,17 @@ public class BeanTester implements IStrategy {
 	{
 		if (period != Period.TEN_SECS || instrument != Instrument.EURUSD)	return;
 				
-		FastStochastic fsBean = IndicatorBeanFactory.getFastStochastic();
-		Object[] objs = Indicating.calculateMultiDimension(instrument, Period.ONE_MIN, fsBean, 1);
+		MovingAverageConvergenceDivergence macdBean = IndicatorBeanFactory.getMovingAverageConvergenceDivergence();
+		Object[] objs = Indicating.calculateMultiDimension(instrument, Period.ONE_MIN, macdBean, 1);
 
-		double[][] sto = new double[2][];
-		sto[0] = (double[])objs[0];		// %K values
-		sto[1] = (double[])objs[1];		// %D values
+		double[][] macd = new double[3][];
+		macd[0] = (double[])objs[0];		// macd values
+		macd[1] = (double[])objs[1];		// signal values
+		macd[2] = (double[])objs[2];		// histogram values
 		
-		Printer.println(instrument.toString() + " sto K/D = " + sto[0][0]
-		                                      + " / " + sto[1][0]);	
+		Printer.println(instrument.toString() + " macd = " + macd[0][0]
+		                                      + " / " + macd[1][0]
+		                                      + " / " + macd[2][0]);	
 	}
 
 	@Override
@@ -42,16 +44,6 @@ public class BeanTester implements IStrategy {
 		JForexAccount.setAccount(context.getAccount());
 		
 		Indicating.setFilter(Filter.WEEKENDS);
-//		Stochastic stochBean = IndicatorBeanFactory.getStochastic();
-//
-//		Object[] objs = Indicating.calculateMultiDimension(Instrument.EURUSD, Period.ONE_MIN, stochBean, 1);
-//
-//		double[][] sto = new double[2][];
-//		sto[0] = (double[])objs[0];
-//		sto[1] = (double[])objs[1];
-//		
-//		Printer.println(Instrument.EURUSD.toString() + " sto = " + sto[0][0]
-//		                                      + " / " + sto[1][0]);	
 	}
 
 	@Override
